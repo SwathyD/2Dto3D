@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Threejs objects</title>
+    <style>
+        body { margin: 0; }
+    </style>
+</head>
+<body>
+    <script src="lib/threejs.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+    
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const view_camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        view_camera.position.x = 0.2;
+        view_camera.position.y = 0.5;
+        view_camera.position.z = 5;
+        scene.add(view_camera);
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+        const controls = new THREE.OrbitControls( camera, renderer.domElement );
+        
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        const cube = new THREE.Mesh( geometry, material );
+        scene.add( cube );
+        const geometry2 = new THREE.ConeGeometry();
+        geometry2.translate(0,1,0);
+        const material2 = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+        const cone = new THREE.Mesh( geometry2, material2 );
+        scene.add( cone );
+        
+        const size = 10;
+        const divisions = 10;
+        
+        const gridHelper = new THREE.GridHelper( size, divisions );
+        scene.add( gridHelper );
+        const axesHelper = new THREE.AxesHelper( 5 );
+        scene.add( axesHelper );
+        camera.position.z = 5;
+        const helper = new THREE.CameraHelper( view_camera );
+        scene.add( helper );
+        
+        renderer.render( scene, camera );
+        controls.update();
+        
+        const animate = function () {
+            requestAnimationFrame( animate );
+            controls.update();
+            
+            renderer.render( scene, camera );
+        };
+        
+        animate();
+    </script>
+</body>
+</html>
