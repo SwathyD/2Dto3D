@@ -13,17 +13,14 @@
     
     <script>
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-        const view_camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
-        view_camera.position.x = 0.2;
-        view_camera.position.y = 0.5;
-        view_camera.position.z = 5;
-        scene.add(view_camera);
+        const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const fov = 45
+        var view_cameras = []
 
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({antialias: true});
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
-        const controls = new THREE.OrbitControls( camera, renderer.domElement );
+        const controls = new THREE.OrbitControls( editor_camera, renderer.domElement );
         
         const geometry = new THREE.BoxGeometry();
         const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
@@ -42,21 +39,125 @@
         scene.add( gridHelper );
         const axesHelper = new THREE.AxesHelper( 5 );
         scene.add( axesHelper );
-        camera.position.z = 5;
-        const helper = new THREE.CameraHelper( view_camera );
-        scene.add( helper );
+        editor_camera.position.z = 5;
         
-        renderer.render( scene, camera );
-        controls.update();
-        
+        viewport_camera = editor_camera
+
         const animate = function () {
             requestAnimationFrame( animate );
             controls.update();
             
-            renderer.render( scene, camera );
+            renderer.render( scene, viewport_camera );
+
+            for(var {cam, renderTarget} of view_cameras){
+                renderer.render(scene, cam, renderTarget, true)
+            }
         };
         
+        function addViewCamera(x, y, z){
+            const view_camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, 0.1, 1000 );
+            view_camera.position.x = x == undefined ? 0.2 : x;
+            view_camera.position.y = y == undefined ? 0.5 : y;
+            view_camera.position.z = z == undefined ? 5 : z;
+
+            view_camera.lookAt(0, 0, 0)
+
+            const helper = new THREE.CameraHelper( view_camera );
+
+            scene.add(view_camera);
+            scene.add( helper );
+
+            var renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { format: THREE.RGBFormat } );
+
+            view_cameras.push({cam: view_camera, renderTarget: renderTarget})
+
+            constructNearPlaneOfCamera(view_cameras[view_cameras.length - 1])
+            constructCentralRay(view_cameras[view_cameras.length - 1])
+        }
+
+        function constructNearPlaneOfCamera(view_cam_context){
+            var {cam, renderTarget} = view_cam_context
+
+            const plane_geometry = new THREE.PlaneGeometry( ...getNearPlaneDimensions(cam) );
+            const plane_material = new THREE.MeshBasicMaterial( {side: THREE.DoubleSide, map: renderTarget} );
+            const plane = new THREE.Mesh( plane_geometry, plane_material );
+            
+            var vector = new THREE.Vector3( 0, 0, -cam.near );
+            vector.applyQuaternion( cam.quaternion );
+
+            vector.add(cam.position)
+
+            plane.position.set(vector.x, vector.y, vector.z)
+            plane.applyQuaternion( cam.quaternion );
+
+            scene.add( plane );
+            view_cam_context.plane = plane;
+        }
+
+        function getNearPlaneDimensions(cam){
+            var hyp = cam.near / Math.cos( toRad(cam.fov/2) )
+            var plane_height  = hyp * Math.cos( toRad(90 - cam.fov/2) ) * 2
+            var plane_width = plane_height * cam.aspect
+
+            return [plane_width, plane_height]
+        }
+
+        function switchViewportCameraTo(cam){
+            viewport_camera = cam
+        }
+
+        addViewCamera(0,0,5)
+        
         animate();
+
+        function toDeg (angle) {
+           return angle * (180 / Math.PI);
+        }
+
+        function toRad (angle) {
+            return angle * (Math.PI / 180);
+        }
+
+        function createSphere(v){
+            const plane_geometry = new THREE.SphereGeometry(0.2,32,32);
+            const plane_material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+            const plane = new THREE.Mesh( plane_geometry, plane_material );
+            plane.position.set(v.x, v.y, v.z)
+            scene.add(plane);
+        }
+
+        function constructCentralRay({cam, plane}){
+            var hFOV = toDeg(Math.atan((plane.geometry.parameters.width/2)/cam.near))*2
+            
+            var vec = new THREE.Vector3(0, 0, -1)
+            vec.applyQuaternion(cam.quaternion)
+            vec.add(cam.position)
+            createSphere(vec)
+
+            var top = new THREE.Vector3(0, 0, -1)
+            top.applyAxisAngle(new THREE.Vector3(1,0,0), toRad(fov/2))
+            top.applyQuaternion(cam.quaternion)
+            top.add(cam.position)
+            createSphere(top)
+
+            var bottom = new THREE.Vector3(0, 0, -1)
+            bottom.applyAxisAngle(new THREE.Vector3(1,0,0), toRad(-fov/2))
+            bottom.applyQuaternion(cam.quaternion)
+            bottom.add(cam.position)
+            createSphere(bottom)
+
+            var left = new THREE.Vector3(0, 0, -1)
+            left.applyAxisAngle(new THREE.Vector3(0,1,0), toRad(hFOV/2))
+            left.applyQuaternion(cam.quaternion)
+            left.add(cam.position)
+            createSphere(left)
+
+            var right = new THREE.Vector3(0, 0, -1)
+            right.applyAxisAngle(new THREE.Vector3(0,1,0), toRad(-hFOV/2))
+            right.applyQuaternion(cam.quaternion)
+            right.add(cam.position)
+            createSphere(right)
+        }
     </script>
 </body>
 </html>
