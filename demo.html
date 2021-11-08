@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Threejs objects</title>
     <style>
-        body { margin: 0; }
+        body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -48,10 +48,6 @@
             controls.update();
             
             renderer.render( scene, viewport_camera );
-
-            for(var {cam, renderTarget} of view_cameras){
-                renderer.render(scene, cam, renderTarget, true)
-            }
         };
         
         function addViewCamera(x, y, z){
@@ -65,21 +61,23 @@
             const helper = new THREE.CameraHelper( view_camera );
 
             scene.add(view_camera);
-            scene.add( helper );
+            // scene.add( helper );
 
             var renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { format: THREE.RGBFormat } );
 
             view_cameras.push({cam: view_camera, renderTarget: renderTarget})
 
             constructNearPlaneOfCamera(view_cameras[view_cameras.length - 1])
-            constructCentralRay(view_cameras[view_cameras.length - 1])
+            constructRays(view_cameras[view_cameras.length - 1])
+
+            renderer.render(scene, view_camera, renderTarget, true)
         }
 
         function constructNearPlaneOfCamera(view_cam_context){
             var {cam, renderTarget} = view_cam_context
 
             const plane_geometry = new THREE.PlaneGeometry( ...getNearPlaneDimensions(cam) );
-            const plane_material = new THREE.MeshBasicMaterial( {side: THREE.DoubleSide, map: renderTarget} );
+            const plane_material = new THREE.MeshBasicMaterial( {side: THREE.DoubleSide, map: renderTarget.texture} );
             const plane = new THREE.Mesh( plane_geometry, plane_material );
             
             var vector = new THREE.Vector3( 0, 0, -cam.near );
@@ -119,44 +117,59 @@
         }
 
         function createSphere(v){
-            const plane_geometry = new THREE.SphereGeometry(0.2,32,32);
+            const plane_geometry = new THREE.SphereGeometry(0.02,32,32);
             const plane_material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
             const plane = new THREE.Mesh( plane_geometry, plane_material );
             plane.position.set(v.x, v.y, v.z)
             scene.add(plane);
         }
 
-        function constructCentralRay({cam, plane}){
-            var hFOV = toDeg(Math.atan((plane.geometry.parameters.width/2)/cam.near))*2
-            
-            var vec = new THREE.Vector3(0, 0, -1)
-            vec.applyQuaternion(cam.quaternion)
-            vec.add(cam.position)
-            createSphere(vec)
+        function constructRays({cam, plane}){
+            var start_x = -plane.geometry.parameters.width / 2
+            var end_x   =  plane.geometry.parameters.width / 2
 
-            var top = new THREE.Vector3(0, 0, -1)
-            top.applyAxisAngle(new THREE.Vector3(1,0,0), toRad(fov/2))
-            top.applyQuaternion(cam.quaternion)
-            top.add(cam.position)
-            createSphere(top)
+            var start_y =  plane.geometry.parameters.height / 2
+            var end_y   = -plane.geometry.parameters.height / 2
 
-            var bottom = new THREE.Vector3(0, 0, -1)
-            bottom.applyAxisAngle(new THREE.Vector3(1,0,0), toRad(-fov/2))
-            bottom.applyQuaternion(cam.quaternion)
-            bottom.add(cam.position)
-            createSphere(bottom)
+            var step_x = 0.0025
+            var step_y = 0.0025
 
-            var left = new THREE.Vector3(0, 0, -1)
-            left.applyAxisAngle(new THREE.Vector3(0,1,0), toRad(hFOV/2))
-            left.applyQuaternion(cam.quaternion)
-            left.add(cam.position)
-            createSphere(left)
+            var color = getRandomInt(0, 16777215+1)
 
-            var right = new THREE.Vector3(0, 0, -1)
-            right.applyAxisAngle(new THREE.Vector3(0,1,0), toRad(-hFOV/2))
-            right.applyQuaternion(cam.quaternion)
-            right.add(cam.position)
-            createSphere(right)
+            for(var x = start_x; x <= end_x; x += step_x){
+                for(var y = start_y; y >= end_y; y -= step_y){
+                    var ray = new THREE.Vector3(0, 0, -cam.near)
+                    ray.add(new THREE.Vector3(x, y, 0))
+                    ray.applyQuaternion(cam.quaternion)
+                    ray.add(cam.position)
+                    createLine(cam.position, ray, color)
+                }
+            }
+        }
+
+        function createLine(vec1, vec2, color){
+            var t_min = 0
+            var t_max = 100
+
+            var x_min = (vec2.x - vec1.x) * t_min + vec1.x
+            var y_min = (vec2.y - vec1.y) * t_min + vec1.y
+            var z_min = (vec2.z - vec1.z) * t_min + vec1.z
+
+            var x_max = (vec2.x - vec1.x) * t_max + vec1.x
+            var y_max = (vec2.y - vec1.y) * t_max + vec1.y
+            var z_max = (vec2.z - vec1.z) * t_max + vec1.z
+
+            const material = new THREE.LineBasicMaterial( { color: color == undefined ? 0x0000ff : color } );
+            const geometry = new THREE.BufferGeometry().setFromPoints( [new THREE.Vector3(x_min, y_min, z_min), new THREE.Vector3(x_max, y_max, z_max)] );
+            const line = new THREE.Line( geometry, material );
+
+            scene.add(line)
+        }
+
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
         }
     </script>
 </body>
