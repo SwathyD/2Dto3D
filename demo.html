@@ -12,12 +12,15 @@
     <script src="lib/OrbitControls.js"></script>
     
     <script>
+        var RenderingWidth = window.innerWidth / 10
+        var RenderingHeight = window.innerHeight / 10
+
         const scene = new THREE.Scene();
         const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
         const fov = 45
         var view_cameras = []
 
-        const renderer = new THREE.WebGLRenderer({antialias: true});
+        const renderer = new THREE.WebGLRenderer();
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
         const controls = new THREE.OrbitControls( editor_camera, renderer.domElement );
@@ -63,7 +66,7 @@
             scene.add(view_camera);
             // scene.add( helper );
 
-            var renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { format: THREE.RGBFormat } );
+            var renderTarget = new THREE.WebGLRenderTarget( RenderingWidth, RenderingHeight, { format: THREE.RGBFormat } );
 
             view_cameras.push({cam: view_camera, renderTarget: renderTarget})
 
@@ -96,6 +99,8 @@
             var hyp = cam.near / Math.cos( toRad(cam.fov/2) )
             var plane_height  = hyp * Math.cos( toRad(90 - cam.fov/2) ) * 2
             var plane_width = plane_height * cam.aspect
+
+            console.log("Plane Dims", [plane_width, plane_height])
 
             return [plane_width, plane_height]
         }
@@ -131,8 +136,8 @@
             var start_y =  plane.geometry.parameters.height / 2
             var end_y   = -plane.geometry.parameters.height / 2
 
-            var step_x = 0.0025
-            var step_y = 0.0025
+            var step_x = plane.geometry.parameters.width  / RenderingWidth
+            var step_y = plane.geometry.parameters.height / RenderingHeight
 
             var color = getRandomInt(0, 16777215+1)
 
