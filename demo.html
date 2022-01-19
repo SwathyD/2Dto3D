@@ -10,6 +10,7 @@
 <body>
     <script src="lib/threejs.js"></script>
     <script src="lib/OrbitControls.js"></script>
+    <script src="lib/LineLineIntersect.js"></script>
     
     <script>
         var RenderingWidth = window.innerWidth / 10
@@ -108,8 +109,6 @@
         function switchViewportCameraTo(cam){
             viewport_camera = cam
         }
-
-        addViewCamera(0,0,5)
         
         animate();
 
@@ -152,17 +151,29 @@
             }
         }
 
-        function createLine(vec1, vec2, color){
-            var t_min = 0
-            var t_max = 100
+        function createLine(vec1, vec2, color, useAsItIs){
+            
+            if(useAsItIs){
+                var x_min = vec1.x
+                var y_min = vec1.y
+                var z_min = vec1.z
 
-            var x_min = (vec2.x - vec1.x) * t_min + vec1.x
-            var y_min = (vec2.y - vec1.y) * t_min + vec1.y
-            var z_min = (vec2.z - vec1.z) * t_min + vec1.z
-
-            var x_max = (vec2.x - vec1.x) * t_max + vec1.x
-            var y_max = (vec2.y - vec1.y) * t_max + vec1.y
-            var z_max = (vec2.z - vec1.z) * t_max + vec1.z
+                var x_max = vec2.x
+                var y_max = vec2.y
+                var z_max = vec2.z
+            }
+            else{
+                var t_min = 0
+                var t_max = 100
+    
+                var x_min = (vec2.x - vec1.x) * t_min + vec1.x
+                var y_min = (vec2.y - vec1.y) * t_min + vec1.y
+                var z_min = (vec2.z - vec1.z) * t_min + vec1.z
+    
+                var x_max = (vec2.x - vec1.x) * t_max + vec1.x
+                var y_max = (vec2.y - vec1.y) * t_max + vec1.y
+                var z_max = (vec2.z - vec1.z) * t_max + vec1.z
+            }
 
             const material = new THREE.LineBasicMaterial( { color: color == undefined ? 0x0000ff : color } );
             const geometry = new THREE.BufferGeometry().setFromPoints( [new THREE.Vector3(x_min, y_min, z_min), new THREE.Vector3(x_max, y_max, z_max)] );
@@ -176,6 +187,10 @@
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
         }
+    </script>
+
+    <script>
+        // addViewCamera(0,0,5)
     </script>
 </body>
 </html>

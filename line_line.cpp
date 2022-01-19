@@ -67,14 +67,14 @@ int LineLineIntersect(
 int main(){
 
    XYZ vertical_line_start;
-   vertical_line_start.x =  0;
-   vertical_line_start.y = -1;
+   vertical_line_start.x =  2;
+   vertical_line_start.y =  0;
    vertical_line_start.z =  0;
 
    XYZ vertical_line_end;
-   vertical_line_end.x =  0;
-   vertical_line_end.y =  1;
-   vertical_line_end.z =  0;
+   vertical_line_end.x =  -2;
+   vertical_line_end.y =   0;
+   vertical_line_end.z =   0;
 
    XYZ horizontal_line_start;
    horizontal_line_start.x =  -1;
