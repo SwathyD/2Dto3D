@@ -17,11 +17,11 @@
         var RenderingHeight = window.innerHeight / 10
 
         const scene = new THREE.Scene();
-        const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.000000001, 1000 );
         const fov = 45
         var view_cameras = []
 
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({antialias: false});
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
         const controls = new THREE.OrbitControls( editor_camera, renderer.domElement );
@@ -43,7 +43,7 @@
         scene.add( gridHelper );
         const axesHelper = new THREE.AxesHelper( 5 );
         scene.add( axesHelper );
-        editor_camera.position.z = 5;
+        editor_camera.position.z = 5.00001;
         
         viewport_camera = editor_camera
 
@@ -140,15 +140,59 @@
 
             var color = getRandomInt(0, 16777215+1)
 
+            var i = 0
+
             for(var x = start_x; x <= end_x; x += step_x){
                 for(var y = start_y; y >= end_y; y -= step_y){
                     var ray = new THREE.Vector3(0, 0, -cam.near)
-                    ray.add(new THREE.Vector3(x, y, 0))
+                    ray.add(new THREE.Vector3(x + step_x / 2, y - step_y / 2, 0))
                     ray.applyQuaternion(cam.quaternion)
                     ray.add(cam.position)
-                    createLine(cam.position, ray, color)
+
+                    if(i < 10)
+                        createLine(cam.position, ray, color)
+
+                    i++
                 }
             }
+
+            drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
+        }
+
+        function drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y}){
+            
+            var color = getRandomInt(0, 16777215+1)
+
+
+
+            for(var x = start_x; x <= end_x; x += step_x){
+                var ray_top = new THREE.Vector3(0, 0, -cam.near)
+                ray_top.add(new THREE.Vector3(x, start_y, 0))
+                ray_top.applyQuaternion(cam.quaternion)
+                ray_top.add(cam.position)
+
+                var ray_bottom = new THREE.Vector3(0, 0, -cam.near)
+                ray_bottom.add(new THREE.Vector3(x, end_y, 0))
+                ray_bottom.applyQuaternion(cam.quaternion)
+                ray_bottom.add(cam.position)
+
+                createLine(ray_top, ray_bottom, color, true)
+            }
+
+            for(var y = start_y; y >= end_y; y -= step_y){
+                var ray_left = new THREE.Vector3(0, 0, -cam.near)
+                ray_left.add(new THREE.Vector3(start_x, y, 0))
+                ray_left.applyQuaternion(cam.quaternion)
+                ray_left.add(cam.position)
+
+                var ray_right = new THREE.Vector3(0, 0, -cam.near)
+                ray_right.add(new THREE.Vector3(end_x, y, 0))
+                ray_right.applyQuaternion(cam.quaternion)
+                ray_right.add(cam.position)
+
+                createLine(ray_left, ray_right, color, true)
+            }
+
         }
 
         function createLine(vec1, vec2, color, useAsItIs){
@@ -190,7 +234,7 @@
     </script>
 
     <script>
-        // addViewCamera(0,0,5)
+        addViewCamera(0,0,5)
     </script>
 </body>
 </html>
