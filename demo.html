@@ -13,8 +13,8 @@
     <script src="lib/LineLineIntersect.js"></script>
     
     <script>
-        var RenderingWidth = window.innerWidth / 10
-        var RenderingHeight = window.innerHeight / 10
+        var RenderingWidth = Math.ceil(window.innerWidth / 10)
+        var RenderingHeight = Math.ceil(window.innerHeight / 10)
 
         const scene = new THREE.Scene();
         const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.000000001, 1000 );
@@ -65,16 +65,20 @@
             const helper = new THREE.CameraHelper( view_camera );
 
             scene.add(view_camera);
-            // scene.add( helper );
 
-            var renderTarget = new THREE.WebGLRenderTarget( RenderingWidth, RenderingHeight, { format: THREE.RGBFormat } );
+            var renderTarget = new THREE.WebGLRenderTarget( RenderingWidth, RenderingHeight, {format: THREE.RGBAFormat} );
 
             view_cameras.push({cam: view_camera, renderTarget: renderTarget})
 
             constructNearPlaneOfCamera(view_cameras[view_cameras.length - 1])
             constructRays(view_cameras[view_cameras.length - 1])
 
+            scene.remove(gridHelper)
+            scene.remove(axesHelper)
             renderer.render(scene, view_camera, renderTarget, true)
+            scene.add(gridHelper)
+            scene.add(axesHelper)
+            extractViewCameraImageToBuffer(view_cameras[view_cameras.length - 1])
         }
 
         function constructNearPlaneOfCamera(view_cam_context){
@@ -140,23 +144,37 @@
 
             var color = getRandomInt(0, 16777215+1)
 
-            var i = 0
+            setTimeout(() => {
+                var buffer = view_cameras.filter((view)=>view.cam == cam)[0].buffer
 
-            for(var x = start_x; x <= end_x; x += step_x){
+                var _x = 0, _y = 0
+
                 for(var y = start_y; y >= end_y; y -= step_y){
-                    var ray = new THREE.Vector3(0, 0, -cam.near)
-                    ray.add(new THREE.Vector3(x + step_x / 2, y - step_y / 2, 0))
-                    ray.applyQuaternion(cam.quaternion)
-                    ray.add(cam.position)
+                    _x = 0
 
-                    if(i < 10)
-                        createLine(cam.position, ray, color)
+                    for(var x = start_x; x <= end_x; x +=step_x){
+                    
+                        if(_x >= RenderingWidth || _y >= RenderingHeight) continue
 
-                    i++
+                        var pix = getPixelsFromRGBABuffer(_x, _y, buffer)
+
+                        if(pix[0] || pix[1] || pix[2] || pix[3]){
+                            var ray = new THREE.Vector3(0, 0, -cam.near)
+                            ray.add(new THREE.Vector3(x + step_x / 2, y - step_y / 2, 0))
+                            ray.applyQuaternion(cam.quaternion)
+                            ray.add(cam.position)
+
+                            createLine(cam.position, ray, color)
+                        }
+
+                        _x++
+                    }
+
+                    _y++
                 }
-            }
+            }, 0);
 
-            drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
+            // drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
         }
 
         function drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y}){
@@ -230,6 +248,22 @@
             min = Math.ceil(min);
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+        }
+
+        function extractViewCameraImageToBuffer(view_camera){
+            var buffer = new Uint8Array( RenderingWidth * RenderingHeight * 4 )
+            renderer.readRenderTargetPixels( view_camera.renderTarget, 0, 0, RenderingWidth, RenderingHeight, buffer )
+
+            view_camera.buffer = buffer
+        }
+
+        function getPixelsFromRGBABuffer(col, row, buffer){
+            return [ 
+                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4)     ],
+                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 1) ],
+                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 2) ],
+                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 3) ]
+                   ]
         }
     </script>
 
