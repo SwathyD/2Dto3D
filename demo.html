@@ -26,16 +26,24 @@
         document.body.appendChild( renderer.domElement );
         const controls = new THREE.OrbitControls( editor_camera, renderer.domElement );
         
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-        const cube = new THREE.Mesh( geometry, material );
-        scene.add( cube );
+
         const geometry2 = new THREE.ConeGeometry();
         geometry2.translate(0,1,0);
-        const material2 = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+        const material2 = new THREE.MeshPhongMaterial( { color: 0xffff00 } );
         const cone = new THREE.Mesh( geometry2, material2 );
         scene.add( cone );
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+        const cube = new THREE.Mesh( geometry, material );
+        scene.add( cube );
         
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
+        scene.add(ambientLight)
+
+        const pointLight = new THREE.PointLight(0xffffff, 0.5, 10, 0)
+        pointLight.position.set(-4, 0, 6)
+        scene.add(pointLight)
+
         const size = 10;
         const divisions = 10;
         
@@ -124,9 +132,12 @@
             return angle * (Math.PI / 180);
         }
 
+        var SPHERE_GEOMETRY = new THREE.SphereGeometry(0.01,16,16);
+        var SPHERE_MATERIAL = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+
         function createSphere(v){
-            const plane_geometry = new THREE.SphereGeometry(0.02,32,32);
-            const plane_material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+            const plane_geometry = SPHERE_GEOMETRY
+            const plane_material = SPHERE_MATERIAL
             const plane = new THREE.Mesh( plane_geometry, plane_material );
             plane.position.set(v.x, v.y, v.z)
             scene.add(plane);
@@ -145,7 +156,10 @@
             var color = getRandomInt(0, 16777215+1)
 
             setTimeout(() => {
-                var buffer = view_cameras.filter((view)=>view.cam == cam)[0].buffer
+                var view_cam = view_cameras.filter((view)=>view.cam == cam)[0]
+                var buffer = view_cam.buffer
+
+                var rays = []
 
                 var _x = 0, _y = 0
 
@@ -164,7 +178,9 @@
                             ray.applyQuaternion(cam.quaternion)
                             ray.add(cam.position)
 
-                            createLine(cam.position, ray, color)
+                            // createLine(cam.position, ray, color)
+
+                            rays.push({start_point: cam.position, end_point: ray, color: pix})
                         }
 
                         _x++
@@ -172,6 +188,8 @@
 
                     _y++
                 }
+
+                view_cam.rays = rays
             }, 0);
 
             // drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
@@ -270,6 +288,52 @@
     <script>
         addViewCamera(0,0,5)
         addViewCamera(-3,4,5)
+    </script>
+
+    <script>
+        function crisscross(){
+            var intersecting_rays_to_render = []
+            var i = 0
+            for(var cur_cam of view_cameras){
+                if(i > 0) continue
+                i++
+
+                for(var ray of cur_cam.rays){
+
+                    for(var other_cam of view_cameras){
+                        if(cur_cam == other_cam) continue
+
+                        var intersecting_rays = []
+                        var nearest_record = 0.0005
+                            
+                        for(var o_ray of other_cam.rays){
+
+                            if( !(ray.color[0] == o_ray.color[0] && ray.color[1] == o_ray.color[1] && ray.color[2] == o_ray.color[2]) ) continue;
+
+                            var nearest_points = intersectionHelper(ray.start_point, ray.end_point, o_ray.start_point, o_ray.end_point)
+                            
+                            if(nearest_points.dist < nearest_record){
+                                intersecting_rays.push([nearest_points.pa, nearest_points.pb])
+                            }
+                        }
+
+                        intersecting_rays_to_render = intersecting_rays_to_render.concat(intersecting_rays)
+                    }
+                }
+            }
+
+            for(var intersections of intersecting_rays_to_render){
+                var middle_point = {
+                                        x: (intersections[0].x + intersections[1].x) / 2,
+                                        y: (intersections[0].y + intersections[1].y) / 2,
+                                        z: (intersections[0].z + intersections[1].z) / 2
+                                   }
+
+                createSphere(middle_point)
+            }
+
+            console.log(intersecting_rays_to_render)
+        }
     </script>
 </body>
 </html>

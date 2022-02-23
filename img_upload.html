@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>Image Upload</title>
+        <style>
+            span:hover{
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <form name="test_upload">
+            <input type="file" id="img1" name="img1">
+            <input type="file" id="img2" name="img2">
+            <span onclick="onSubmit()">Submit</span>
+            <br>
+
+            <img id="viz_op" src="" alt="feature matching"/>
+        </form>
+
+        <script>
+            var domain = "http://78ed-35-229-97-197.ngrok.io"
+
+            async function onSubmit(){
+                try{
+                    var img1 = document.forms.test_upload.img1
+                    var img2 = document.forms.test_upload.img2
+
+                    var data = new FormData()
+                    data.append('img1', img1.files[0])
+                    data.append('img2', img2.files[0])
+
+                    var response = await fetch(domain + "/detectFeatureMatches", {
+                        method: "POST",
+                        body : data,
+                        'Content-Type': 'multipart/form-data'
+                    })
+
+                    var str = await response.text()
+                    var data = JSON.parse(str)
+
+                    viz_op.src = data.viz_data_url
+
+                    console.log(data)
+                }catch(e){
+                    console.log(str)
+                }
+            }
+        </script>
+    </body>
+</html>
