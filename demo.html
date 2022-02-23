@@ -15,18 +15,18 @@
     <script>
         var RenderingWidth = Math.ceil(window.innerWidth / 10)
         var RenderingHeight = Math.ceil(window.innerHeight / 10)
-
+        
         const scene = new THREE.Scene();
         const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.000000001, 1000 );
         const fov = 45
         var view_cameras = []
-
+        
         const renderer = new THREE.WebGLRenderer({antialias: false});
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
         const controls = new THREE.OrbitControls( editor_camera, renderer.domElement );
         
-
+        
         const geometry2 = new THREE.ConeGeometry();
         geometry2.translate(0,1,0);
         const material2 = new THREE.MeshPhongMaterial( { color: 0xffff00 } );
@@ -39,11 +39,11 @@
         
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
         scene.add(ambientLight)
-
+        
         const pointLight = new THREE.PointLight(0xffffff, 0.5, 10, 0)
         pointLight.position.set(-4, 0, 6)
         scene.add(pointLight)
-
+        
         const size = 10;
         const divisions = 10;
         
@@ -54,7 +54,7 @@
         editor_camera.position.z = 5.00001;
         
         viewport_camera = editor_camera
-
+        
         const animate = function () {
             requestAnimationFrame( animate );
             controls.update();
@@ -67,74 +67,76 @@
             view_camera.position.x = x == undefined ? 0.2 : x;
             view_camera.position.y = y == undefined ? 0.5 : y;
             view_camera.position.z = z == undefined ? 5 : z;
-
+            
             view_camera.lookAt(0, 0, 0)
-
+            
             const helper = new THREE.CameraHelper( view_camera );
-
+            
             scene.add(view_camera);
-
+            
             var renderTarget = new THREE.WebGLRenderTarget( RenderingWidth, RenderingHeight, {format: THREE.RGBAFormat} );
-
+            
             view_cameras.push({cam: view_camera, renderTarget: renderTarget})
-
+            
             constructNearPlaneOfCamera(view_cameras[view_cameras.length - 1])
             constructRays(view_cameras[view_cameras.length - 1])
-
+            
             scene.remove(gridHelper)
             scene.remove(axesHelper)
             renderer.render(scene, view_camera, renderTarget, true)
             scene.add(gridHelper)
             scene.add(axesHelper)
             extractViewCameraImageToBuffer(view_cameras[view_cameras.length - 1])
-        }
 
+
+        }
+        
         function constructNearPlaneOfCamera(view_cam_context){
             var {cam, renderTarget} = view_cam_context
-
+            
             const plane_geometry = new THREE.PlaneGeometry( ...getNearPlaneDimensions(cam) );
             const plane_material = new THREE.MeshBasicMaterial( {side: THREE.DoubleSide, map: renderTarget.texture} );
             const plane = new THREE.Mesh( plane_geometry, plane_material );
             
             var vector = new THREE.Vector3( 0, 0, -cam.near );
             vector.applyQuaternion( cam.quaternion );
-
+            
             vector.add(cam.position)
-
+            
             plane.position.set(vector.x, vector.y, vector.z)
             plane.applyQuaternion( cam.quaternion );
-
+            
             scene.add( plane );
             view_cam_context.plane = plane;
         }
-
+        
         function getNearPlaneDimensions(cam){
             var hyp = cam.near / Math.cos( toRad(cam.fov/2) )
             var plane_height  = hyp * Math.cos( toRad(90 - cam.fov/2) ) * 2
             var plane_width = plane_height * cam.aspect
-
+            
             console.log("Plane Dims", [plane_width, plane_height])
-
+            
             return [plane_width, plane_height]
         }
-
+        
         function switchViewportCameraTo(cam){
             viewport_camera = cam
         }
         
         animate();
-
+        
         function toDeg (angle) {
-           return angle * (180 / Math.PI);
+            return angle * (180 / Math.PI);
         }
-
+        
         function toRad (angle) {
             return angle * (Math.PI / 180);
         }
-
+        
         var SPHERE_GEOMETRY = new THREE.SphereGeometry(0.01,16,16);
         var SPHERE_MATERIAL = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-
+        
         function createSphere(v){
             const plane_geometry = SPHERE_GEOMETRY
             const plane_material = SPHERE_MATERIAL
@@ -142,102 +144,102 @@
             plane.position.set(v.x, v.y, v.z)
             scene.add(plane);
         }
-
+        
         function constructRays({cam, plane}){
             var start_x = -plane.geometry.parameters.width / 2
             var end_x   =  plane.geometry.parameters.width / 2
-
+            
             var start_y =  plane.geometry.parameters.height / 2
             var end_y   = -plane.geometry.parameters.height / 2
-
+            
             var step_x = plane.geometry.parameters.width  / RenderingWidth
             var step_y = plane.geometry.parameters.height / RenderingHeight
-
+            
             var color = getRandomInt(0, 16777215+1)
-
+            
             setTimeout(() => {
                 var view_cam = view_cameras.filter((view)=>view.cam == cam)[0]
                 var buffer = view_cam.buffer
-
+                
                 var rays = []
-
+                
                 var _x = 0, _y = 0
-
+                
                 for(var y = start_y; y >= end_y; y -= step_y){
                     _x = 0
-
-                    for(var x = start_x; x <= end_x; x +=step_x){
                     
+                    for(var x = start_x; x <= end_x; x +=step_x){
+                        
                         if(_x >= RenderingWidth || _y >= RenderingHeight) continue
-
+                        
                         var pix = getPixelsFromRGBABuffer(_x, _y, buffer)
-
+                        
                         if(pix[0] || pix[1] || pix[2] || pix[3]){
                             var ray = new THREE.Vector3(0, 0, -cam.near)
                             ray.add(new THREE.Vector3(x + step_x / 2, y - step_y / 2, 0))
                             ray.applyQuaternion(cam.quaternion)
                             ray.add(cam.position)
-
-                            createLine(cam.position, ray, color)
-
-                            rays.push({start_point: cam.position, end_point: ray, color: pix, x: _x, y: _y})
+                            
+                            // createLine(cam.position, ray, color)
+                            
+                            rays.push({start_point: cam.position, end_point: ray, color: pix})
                         }
-
+                        
                         _x++
                     }
-
+                    
                     _y++
                 }
-
+                
                 view_cam.rays = rays
             }, 0);
-
+            
             // drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
         }
-
+        
         function drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y}){
             
             var color = getRandomInt(0, 16777215+1)
-
-
-
+            
+            
+            
             for(var x = start_x; x <= end_x; x += step_x){
                 var ray_top = new THREE.Vector3(0, 0, -cam.near)
                 ray_top.add(new THREE.Vector3(x, start_y, 0))
                 ray_top.applyQuaternion(cam.quaternion)
                 ray_top.add(cam.position)
-
+                
                 var ray_bottom = new THREE.Vector3(0, 0, -cam.near)
                 ray_bottom.add(new THREE.Vector3(x, end_y, 0))
                 ray_bottom.applyQuaternion(cam.quaternion)
                 ray_bottom.add(cam.position)
-
+                
                 createLine(ray_top, ray_bottom, color, true)
             }
-
+            
             for(var y = start_y; y >= end_y; y -= step_y){
                 var ray_left = new THREE.Vector3(0, 0, -cam.near)
                 ray_left.add(new THREE.Vector3(start_x, y, 0))
                 ray_left.applyQuaternion(cam.quaternion)
                 ray_left.add(cam.position)
-
+                
                 var ray_right = new THREE.Vector3(0, 0, -cam.near)
                 ray_right.add(new THREE.Vector3(end_x, y, 0))
                 ray_right.applyQuaternion(cam.quaternion)
                 ray_right.add(cam.position)
-
+                
                 createLine(ray_left, ray_right, color, true)
             }
-
+            
         }
-
+        
         function createLine(vec1, vec2, color, useAsItIs){
             
             if(useAsItIs){
                 var x_min = vec1.x
                 var y_min = vec1.y
                 var z_min = vec1.z
-
+                
                 var x_max = vec2.x
                 var y_max = vec2.y
                 var z_max = vec2.z
@@ -245,51 +247,100 @@
             else{
                 var t_min = 0
                 var t_max = 100
-    
+                
                 var x_min = (vec2.x - vec1.x) * t_min + vec1.x
                 var y_min = (vec2.y - vec1.y) * t_min + vec1.y
                 var z_min = (vec2.z - vec1.z) * t_min + vec1.z
-    
+                
                 var x_max = (vec2.x - vec1.x) * t_max + vec1.x
                 var y_max = (vec2.y - vec1.y) * t_max + vec1.y
                 var z_max = (vec2.z - vec1.z) * t_max + vec1.z
             }
-
+            
             const material = new THREE.LineBasicMaterial( { color: color == undefined ? 0x0000ff : color } );
             const geometry = new THREE.BufferGeometry().setFromPoints( [new THREE.Vector3(x_min, y_min, z_min), new THREE.Vector3(x_max, y_max, z_max)] );
             const line = new THREE.Line( geometry, material );
-
+            
             scene.add(line)
         }
-
+        
         function getRandomInt(min, max) {
             min = Math.ceil(min);
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
         }
 
+        function createImageFromRGBdata(rgbData, width, height)
+        {
+            var mCanvas = document.createElement('canvas');
+            mCanvas.width = width;
+            mCanvas.height = height;
+            
+            var mContext = mCanvas.getContext('2d');
+            var mImgData = mContext.createImageData(width, height);
+            
+            var srcIndex=0, dstIndex=0, curPixelNum=0;
+            
+            for(var y = 0; y <  RenderingHeight; y++){
+                for(var x = 0; x <  RenderingWidth; x++){
+                    var pixel = getPixelsFromRGBABuffer(x, y, rgbData);    
+                    mImgData.data[dstIndex] = pixel[0];		// r
+                    mImgData.data[dstIndex+1] = pixel[1];	// g
+                    mImgData.data[dstIndex+2] = pixel[2];	// b
+                    mImgData.data[dstIndex+3] = 255         //aplha
+                    dstIndex += 4;
+                }
+            }
+            
+            mContext.putImageData(mImgData, 0, 0);
+            return mCanvas;
+        }
+
+        async function getImageFromBuffer(buffer)
+        {
+            var mCanvas = createImageFromRGBdata(buffer, RenderingWidth, RenderingHeight);
+            mCanvas.setAttribute('style', "width:64px; height:64px; border:solid 1px black"); // make it large enough to be visible
+            document.body.appendChild( mCanvas );
+            
+            var mImg = document.createElement("img");
+            var imgDataUrl = mCanvas.toDataURL();	// make a base64 string of the image data (the array above)
+            mImg.src = imgDataUrl;
+            mImg.setAttribute('style', "width:64px; height:64px; border:solid 1px black"); // make it large enough to be visible
+            document.body.appendChild(mImg);
+            
+            var res = await fetch(mImg.src)
+            var blob = await res.blob()
+            const file = new File([blob], 'temp.png', blob)
+            return file;
+        }
+
         function extractViewCameraImageToBuffer(view_camera){
             var buffer = new Uint8Array( RenderingWidth * RenderingHeight * 4 )
             renderer.readRenderTargetPixels( view_camera.renderTarget, 0, 0, RenderingWidth, RenderingHeight, buffer )
-
+            
             view_camera.buffer = buffer
-        }
 
+           window.getImageFromBuffer(buffer).then((file)=>{
+                view_camera.image = file
+            })
+        }
+        
         function getPixelsFromRGBABuffer(col, row, buffer){
             return [ 
-                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4)     ],
-                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 1) ],
-                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 2) ],
-                     buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 3) ]
-                   ]
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4)     ],
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 1) ],
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 2) ],
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 3) ]
+            ]
         }
     </script>
-
+    
     <script>
         addViewCamera(0,0,5)
         addViewCamera(-3,4,5)
+        
     </script>
-
+    
     <script>
         function crisscross(){
             var intersecting_rays_to_render = []
@@ -297,43 +348,58 @@
             for(var cur_cam of view_cameras){
                 if(i > 0) continue
                 i++
-
+                
                 for(var ray of cur_cam.rays){
-
+                    
                     for(var other_cam of view_cameras){
                         if(cur_cam == other_cam) continue
-
+                        
                         var intersecting_rays = []
                         var nearest_record = 0.0005
-                            
+                        
                         for(var o_ray of other_cam.rays){
-
+                            
                             if( !(ray.color[0] == o_ray.color[0] && ray.color[1] == o_ray.color[1] && ray.color[2] == o_ray.color[2]) ) continue;
-
+                            
                             var nearest_points = intersectionHelper(ray.start_point, ray.end_point, o_ray.start_point, o_ray.end_point)
                             
                             if(nearest_points.dist < nearest_record){
                                 intersecting_rays.push([nearest_points.pa, nearest_points.pb])
                             }
                         }
-
+                        
                         intersecting_rays_to_render = intersecting_rays_to_render.concat(intersecting_rays)
                     }
                 }
             }
-
+            
             for(var intersections of intersecting_rays_to_render){
                 var middle_point = {
-                                        x: (intersections[0].x + intersections[1].x) / 2,
-                                        y: (intersections[0].y + intersections[1].y) / 2,
-                                        z: (intersections[0].z + intersections[1].z) / 2
-                                   }
-
+                    x: (intersections[0].x + intersections[1].x) / 2,
+                    y: (intersections[0].y + intersections[1].y) / 2,
+                    z: (intersections[0].z + intersections[1].z) / 2
+                }
+                
                 createSphere(middle_point)
             }
-
+            
             console.log(intersecting_rays_to_render)
         }
-    </script>
+        
+        
+        
+        
+        
+       
+    
+    
+</script>
+<style>
+</style>
+</head>
+<body>
+</body>
+</html>
+</script>
 </body>
 </html>
