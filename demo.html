@@ -10,6 +10,7 @@
 <body>
     <script src="lib/threejs.js"></script>
     <script src="lib/OrbitControls.js"></script>
+    <script src="lib/OBJLoader.js"></script>
     <script src="lib/LineLineIntersect.js"></script>
     
     <script>
@@ -35,7 +36,7 @@
         const geometry = new THREE.BoxGeometry();
         const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
         const cube = new THREE.Mesh( geometry, material );
-        scene.add( cube );
+        // scene.add( cube );
         
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
         scene.add(ambientLight)
@@ -337,8 +338,13 @@
     
     <script>
         addViewCamera(0,0,5)
-        addViewCamera(-3,4,5)
-        
+        addViewCamera(0,0,-5)
+        addViewCamera(0,5,0)
+        addViewCamera(0,-5,0)
+
+        setTimeout(() => {
+            crisscross()
+        }, 0);
     </script>
     
     <script>
