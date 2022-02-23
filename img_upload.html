@@ -11,7 +11,7 @@
         <form name="test_upload">
             <input type="file" id="img1" name="img1">
             <input type="file" id="img2" name="img2">
-            <span onclick="onSubmit()">Submit</span>
+            <span onclick="onSubmit(document.forms.test_upload.img1.files[0], document.forms.test_upload.img2.files[0])">Submit</span>
             <br>
 
             <img id="viz_op" src="" alt="feature matching"/>
@@ -20,14 +20,11 @@
         <script>
             var domain = "http://78ed-35-229-97-197.ngrok.io"
 
-            async function onSubmit(){
+            async function onSubmit(img1, img2){
                 try{
-                    var img1 = document.forms.test_upload.img1
-                    var img2 = document.forms.test_upload.img2
-
                     var data = new FormData()
-                    data.append('img1', img1.files[0])
-                    data.append('img2', img2.files[0])
+                    data.append('img1', img1)
+                    data.append('img2', img2)
 
                     var response = await fetch(domain + "/detectFeatureMatches", {
                         method: "POST",
@@ -40,7 +37,26 @@
 
                     viz_op.src = data.viz_data_url
 
-                    console.log(data)
+                    var ray_to_ray_matches = []
+
+                    for(var i = 0; i < data.matches.length; i++){
+                        if(data.matches[i] == -1) continue;
+
+                        ray_to_ray_matches.push({
+                            img1: {
+                                x: Math.round(data.img1_keypoints[i][0]),
+                                y: Math.round(data.img1_keypoints[i][1]),
+                            },
+                            img2: {
+                                x: Math.round(data.img2_keypoints[data.matches[i]][0]),
+                                y: Math.round(data.img2_keypoints[data.matches[i]][1])
+                            }
+                        })
+                    }
+
+                    console.log(ray_to_ray_matches)
+
+                    return ray_to_ray_matches
                 }catch(e){
                     console.log(str)
                 }

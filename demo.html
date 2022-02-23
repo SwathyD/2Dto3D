@@ -178,9 +178,9 @@
                             ray.applyQuaternion(cam.quaternion)
                             ray.add(cam.position)
 
-                            // createLine(cam.position, ray, color)
+                            createLine(cam.position, ray, color)
 
-                            rays.push({start_point: cam.position, end_point: ray, color: pix})
+                            rays.push({start_point: cam.position, end_point: ray, color: pix, x: _x, y: _y})
                         }
 
                         _x++
