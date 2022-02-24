@@ -13,8 +13,8 @@
     <script src="lib/LineLineIntersect.js"></script>
     
     <script>
-        var RenderingWidth = Math.ceil(window.innerWidth / 10)
-        var RenderingHeight = Math.ceil(window.innerHeight / 10)
+        var RenderingWidth = Math.ceil(window.innerWidth / 1)
+        var RenderingHeight = Math.ceil(window.innerHeight / 1)
         
         const scene = new THREE.Scene();
         const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.000000001, 1000 );
@@ -27,16 +27,22 @@
         const controls = new THREE.OrbitControls( editor_camera, renderer.domElement );
         
         
-        const geometry2 = new THREE.ConeGeometry();
-        geometry2.translate(0,1,0);
-        const material2 = new THREE.MeshPhongMaterial( { color: 0xffff00 } );
-        const cone = new THREE.Mesh( geometry2, material2 );
-        scene.add( cone );
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
-        const cube = new THREE.Mesh( geometry, material );
-        scene.add( cube );
+        // const geometry2 = new THREE.ConeGeometry();
+        // geometry2.translate(0,1,0);
+        // const material2 = new THREE.MeshPhongMaterial( { color: 0xffff00 } );
+        // const cone = new THREE.Mesh( geometry2, material2 );
+        // scene.add( cone );
+        // const geometry = new THREE.BoxGeometry();
+        // const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+        // const cube = new THREE.Mesh( geometry, material );
+        // scene.add( cube );
         
+        const geometry = new THREE.TorusGeometry( 2, 0.4, 5, 100 );
+        const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+        const torus = new THREE.Mesh( geometry, material );
+        scene.add( torus );
+
+
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
         scene.add(ambientLight)
         
@@ -87,8 +93,8 @@
             scene.add(gridHelper)
             scene.add(axesHelper)
             extractViewCameraImageToBuffer(view_cameras[view_cameras.length - 1])
-
-
+            
+            
         }
         
         function constructNearPlaneOfCamera(view_cam_context){
@@ -182,7 +188,7 @@
                             
                             // createLine(cam.position, ray, color)
                             
-                            rays.push({start_point: cam.position, end_point: ray, color: pix})
+                            rays.push({start_point: cam.position, end_point: ray, color: pix, x: _x, y: _y})
                         }
                         
                         _x++
@@ -269,7 +275,7 @@
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
         }
-
+        
         function createImageFromRGBdata(rgbData, width, height)
         {
             var mCanvas = document.createElement('canvas');
@@ -295,7 +301,7 @@
             mContext.putImageData(mImgData, 0, 0);
             return mCanvas;
         }
-
+        
         async function getImageFromBuffer(buffer)
         {
             var mCanvas = createImageFromRGBdata(buffer, RenderingWidth, RenderingHeight);
@@ -313,14 +319,14 @@
             const file = new File([blob], 'temp.png', blob)
             return file;
         }
-
+        
         function extractViewCameraImageToBuffer(view_camera){
             var buffer = new Uint8Array( RenderingWidth * RenderingHeight * 4 )
             renderer.readRenderTargetPixels( view_camera.renderTarget, 0, 0, RenderingWidth, RenderingHeight, buffer )
             
             view_camera.buffer = buffer
-
-           window.getImageFromBuffer(buffer).then((file)=>{
+            
+            window.getImageFromBuffer(buffer).then((file)=>{
                 view_camera.image = file
             })
         }
@@ -337,8 +343,9 @@
     
     <script>
         addViewCamera(0,0,5)
-        addViewCamera(-3,4,5)
-        
+        addViewCamera(-1,0,5)
+        addViewCamera(-2,0,5)
+        addViewCamera(-3,0,5)
     </script>
     
     <script>
@@ -384,22 +391,83 @@
             }
             
             console.log(intersecting_rays_to_render)
+        }   
+    </script>
+    
+    <script>
+        var domain = "http://78ed-35-229-97-197.ngrok.io"
+        
+        async function onSubmit(img1, img2){
+            try{
+                var data = new FormData()
+                data.append('img1', img1)
+                data.append('img2', img2)
+                
+                var response = await fetch(domain + "/detectFeatureMatches", {
+                    method: "POST",
+                    body : data,
+                    'Content-Type': 'multipart/form-data'
+                })
+                
+                var str = await response.text()
+                var data = JSON.parse(str)
+                
+                var viz_op = document.createElement("img")
+                viz_op.src = data.viz_data_url
+                document.body.appendChild(viz_op);
+                
+                var ray_to_ray_matches = []
+                
+                for(var i = 0; i < data.matches.length; i++){
+                    if(data.matches[i] == -1) continue;
+                    
+                    ray_to_ray_matches.push({
+                        img1: {
+                            x: Math.round(data.img1_keypoints[i][0]),
+                            y: Math.round(data.img1_keypoints[i][1]),
+                        },
+                        img2: {
+                            x: Math.round(data.img2_keypoints[data.matches[i]][0]),
+                            y: Math.round(data.img2_keypoints[data.matches[i]][1])
+                        }
+                    })
+                }
+                
+                // console.log(ray_to_ray_matches)
+                
+                return ray_to_ray_matches
+            }catch(e){
+                console.log(str)
+            }
         }
         
-        
-        
-        
-        
-       
-    
-    
-</script>
-<style>
-</style>
-</head>
-<body>
-</body>
-</html>
-</script>
+        async function getRayMatches(){
+            for(var i=0; i<view_cameras.length-1; i++){
+                var rayMatches =  await onSubmit(view_cameras[i].image, view_cameras[i+1].image);
+                
+                for(var j=0; j<rayMatches.length; j++){
+                    var ray1 = view_cameras[i].rays.find(({x,y}) => {return (x==rayMatches[j].img1.x && y==rayMatches[j].img1.y)})
+                    var ray2 = view_cameras[i+1].rays.find(({x,y}) => {return (x==rayMatches[j].img2.x && y==rayMatches[j].img2.y)})
+                    
+                    if(ray1 && ray2){
+                        
+                        var nearest_points = intersectionHelper(ray1.start_point, ray1.end_point, ray2.start_point, ray2.end_point)
+                        
+                        var middle_point = {
+                            x: (nearest_points.pa.x + nearest_points.pb.x) / 2,
+                            y: (nearest_points.pa.y + nearest_points.pb.y) / 2,
+                            z: (nearest_points.pa.z + nearest_points.pb.z) / 2
+                        }
+                        
+                        createSphere(middle_point)
+                    }
+                }
+                //view_cameras[i].rays,  rayMatches[0].img1....rayMatches[n].img1
+                //view_cameras[i+1].rays
+            }
+            
+            
+        }
+    </script>
 </body>
 </html>
