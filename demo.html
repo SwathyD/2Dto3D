@@ -80,7 +80,7 @@
             view_cameras.push({cam: view_camera, renderTarget: renderTarget})
             
             constructNearPlaneOfCamera(view_cameras[view_cameras.length - 1])
-            constructRays(view_cameras[view_cameras.length - 1])
+            // constructRays(view_cameras[view_cameras.length - 1])
             
             scene.remove(gridHelper)
             scene.remove(axesHelper)
@@ -195,7 +195,7 @@
                 view_cam.rays = rays
             }, 0);
             
-            // drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
+            drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
         }
         
         function drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y}){
@@ -338,13 +338,13 @@
     
     <script>
         addViewCamera(0,0,5)
-        addViewCamera(0,0,-5)
-        addViewCamera(0,5,0)
-        addViewCamera(0,-5,0)
+        // addViewCamera(0,0,-5)
+        // addViewCamera(0,5,0)
+        // addViewCamera(0,-5,0)
 
-        setTimeout(() => {
-            crisscross()
-        }, 0);
+        // setTimeout(() => {
+        //     crisscross()
+        // }, 0);
     </script>
     
     <script>
@@ -391,21 +391,33 @@
             
             console.log(intersecting_rays_to_render)
         }
-        
-        
-        
-        
-        
-       
-    
-    
-</script>
-<style>
-</style>
-</head>
-<body>
-</body>
-</html>
-</script>
+    </script>
+
+    <script>
+        function getRay(_x, _y, {cam, plane, buffer}){
+
+            var scale_x = plane.geometry.parameters.width  / RenderingWidth
+            var scale_y = plane.geometry.parameters.height / RenderingHeight
+
+            var offset_x = plane.geometry.parameters.width  / 2
+            var offset_y = plane.geometry.parameters.height / 2
+
+            var x = _x * scale_x - offset_x
+            var y = (-_y) * scale_y + offset_y
+
+            var ray = new THREE.Vector3(0, 0, -cam.near)
+            ray.add(new THREE.Vector3(x, y, 0))
+            ray.applyQuaternion(cam.quaternion)
+            ray.add(cam.position)
+
+            createLine(cam.position, ray, new THREE.Color(0xff0000))
+
+            return {
+                from : cam.position,
+                to   : ray,
+                color: getPixelsFromRGBABuffer(parseInt(_x),parseInt(_y), buffer)  
+            }
+        }
+    </script>
 </body>
 </html>
