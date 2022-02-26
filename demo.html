@@ -89,11 +89,13 @@
         // const torus = new THREE.Mesh( geometry, material );
         // scene.add( torus );
 
+        var model = "bear"
+
         const loader = new THREE.OBJLoader();
-        loader.load('assets/bunny.obj',
+        loader.load(`assets/${model}.obj`,
             function ( group ) {
-                new THREE.TextureLoader().load("assets/bunny.jpg", function(texture){
-                    new THREE.TextureLoader().load("assets/nbunny.jpg", function(nmap){
+                new THREE.TextureLoader().load(`assets/${model}.jpg`, function(texture){
+                    new THREE.TextureLoader().load(`assets/n${model}.jpg`, function(nmap){
                         var bunny = group.children[0]
 
                         bunny.material.map = texture
