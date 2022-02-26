@@ -5,13 +5,59 @@
     <title>Threejs objects</title>
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
+        .navbar{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            background: #dadada;
+        }
+        .navitem {
+            padding: 8px 35px;
+            /* font-size: 30px; */
+        }
     </style>
 </head>
 <body>
+    <div class="navbar">
+        <div class="navitem"><label> Camera </label>  
+            <select id="camera">   
+            <option value = "editor_camera"> Editor Camera
+            </option>   
+            </select>  </div>
+        <div class="navitem"><label> Object </label>  
+            <select id="objects">  
+            <option value = "switchObject('cone')"> Cone   
+            </option>     
+            </select> </div>
+        <!-- <div class="navitem"><label> Rendering width/height </label>  
+            <select id="ratio">  
+            <option value = "1"> 1 </option>     
+            <option value = "2"> 2 </option>     
+            <option value = "3"> 3 </option>     
+            <option value = "5"> 5 </option>     
+            <option value = "10"> 10 </option>     
+            </select> </div> -->
+    </div>
     <script src="lib/threejs.js"></script>
     <script src="lib/OrbitControls.js"></script>
     <script src="lib/LineLineIntersect.js"></script>
     
+    <script>
+        var cams = document.getElementById("camera")
+        cams.addEventListener("change", function(){
+            switchViewportCameraTo(eval(cams.value))
+        })
+
+        function addCameraToList(){
+            var cams = document.getElementById("camera");
+            var opt = document.createElement("option");
+            opt.setAttribute("value", "view_cameras["+(view_cameras.length-1)+"].cam");
+            opt.text = "Camera "+ view_cameras.length
+            cams.appendChild(opt);
+        }
+    </script>
+
     <script>
         var RenderingWidth = Math.ceil(window.innerWidth / 1)
         var RenderingHeight = Math.ceil(window.innerHeight / 1)
@@ -93,7 +139,7 @@
             scene.add(axesHelper)
             extractViewCameraImageToBuffer(view_cameras[view_cameras.length - 1])
             
-            
+            addCameraToList()
         }
         
         function constructNearPlaneOfCamera(view_cam_context){
