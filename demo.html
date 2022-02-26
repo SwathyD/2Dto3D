@@ -10,6 +10,7 @@
 <body>
     <script src="lib/threejs.js"></script>
     <script src="lib/OrbitControls.js"></script>
+    <script src="lib/OBJLoader.js"></script>
     <script src="lib/LineLineIntersect.js"></script>
     
     <script>
@@ -27,20 +28,66 @@
         const controls = new THREE.OrbitControls( editor_camera, renderer.domElement );
         
         
-        const geometry2 = new THREE.ConeGeometry();
-        geometry2.translate(0,1,0);
-        const material2 = new THREE.MeshPhongMaterial( { color: 0xffff00 } );
-        const cone = new THREE.Mesh( geometry2, material2 );
-        scene.add( cone );
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
-        const cube = new THREE.Mesh( geometry, material );
-        scene.add( cube );
+        // const geometry2 = new THREE.ConeGeometry();
+        // geometry2.translate(0,1,0);
+        // const material2 = new THREE.MeshPhongMaterial( { color: 0xffff00 } );
+        // const cone = new THREE.Mesh( geometry2, material2 );
+        // scene.add( cone );
+        // const geometry = new THREE.BoxGeometry();
+        // const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+        // const cube = new THREE.Mesh( geometry, material );
+        // scene.add( cube );
         
         // const geometry = new THREE.TorusGeometry( 2, 0.4, 5, 100 );
         // const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
         // const torus = new THREE.Mesh( geometry, material );
         // scene.add( torus );
+
+        const loader = new THREE.OBJLoader();
+        loader.load('assets/bunny.obj',
+            function ( group ) {
+                new THREE.TextureLoader().load("assets/bunny.jpg", function(texture){
+                    new THREE.TextureLoader().load("assets/nbunny.jpg", function(nmap){
+                        var bunny = group.children[0]
+
+                        bunny.material.map = texture
+                        bunny.material.normalMap = nmap
+                        bunny.material.normalMapType = THREE.ObjectSpaceNormalMap
+                        bunny.material.needsUpdate = true
+                        bunny.position.set(0, 0, 0)
+                        bunny.scale.set(0.01, 0.01, 0.01)
+
+                        console.log(bunny)
+
+                        scene.add( bunny );
+                        addViewCamera(-2,0,4)
+                        addViewCamera(0,0,5)
+                        addViewCamera(2,0,4)
+                        addViewCamera(3,0,2)
+                        addViewCamera(4,0,0)
+                        addViewCamera(3,0,-2)
+                        addViewCamera(2,0,-4)
+                        addViewCamera(0,0,-5)
+                        addViewCamera(-2,0,-4)
+                        addViewCamera(-3,0,-2)
+                        addViewCamera(-4,0,0)
+                        addViewCamera(-3,0,2)
+                    })
+                });
+            },
+            
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            },
+            
+            function ( error ) {
+
+                console.log( 'An error happened' );
+
+            }
+        );
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
         scene.add(ambientLight)
@@ -139,7 +186,7 @@
             return angle * (Math.PI / 180);
         }
         
-        var SPHERE_GEOMETRY = new THREE.SphereGeometry(0.01,16,16);
+        var SPHERE_GEOMETRY = new THREE.SphereGeometry(0.05,16,16);
         var SPHERE_MATERIAL = new THREE.MeshBasicMaterial( {color: 0xff0000} );
         
         function createSphere(v, color){
@@ -191,7 +238,7 @@
                             ray.applyQuaternion(cam.quaternion)
                             ray.add(cam.position)
                             
-                            createLine(cam.position, ray, color)
+                            // createLine(cam.position, ray, color)
                             
                             rays.push({start_point: cam.position, end_point: ray, color: pix, x: _x, y: _y})
                         }
@@ -205,7 +252,7 @@
                 view_cam.rays = rays
             }, 0);
             
-            drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
+            // drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y})
         }
         
         function drawWireFrame({cam, plane, start_x, end_x, start_y, end_y, step_x, step_y}){
@@ -347,11 +394,6 @@
     </script>
     
     <script>
-        addViewCamera(0,0,5)
-        addViewCamera(-2,0,5)
-    </script>
-    
-    <script>
         function crisscross(){
             var intersecting_rays_to_render = []
             var i = 0
@@ -398,7 +440,7 @@
     </script>
     
     <script>
-        var domain = "http://26c0-34-86-13-140.ngrok.io"
+        var domain = "http://870f-34-86-37-210.ngrok.io"
         
         async function onSubmit(img1, img2){
             try{
@@ -445,12 +487,12 @@
         }
         
         async function getRayMatches(){
-            for(var i=0; i<view_cameras.length-1; i++){
+            for(var i=0; i<view_cameras.length; i++){
                 var rayMatches =  await onSubmit(view_cameras[i].image, view_cameras[i+1].image);
                 
                 for(var j=0; j<rayMatches.length; j++){
                     var ray1 = getRay(rayMatches[j].img1.x, rayMatches[j].img1.y, view_cameras[i])
-                    var ray2 = getRay(rayMatches[j].img2.x, rayMatches[j].img2.y, view_cameras[i+1])
+                    var ray2 = getRay(rayMatches[j].img2.x, rayMatches[j].img2.y, view_cameras[(i+1) % view_cameras.length])
 
                     // createLine(ray1.start_point, ray1.end_point, true)
                     // createLine(ray2.start_point, ray2.end_point, true)
@@ -465,11 +507,9 @@
                     
                     var color = ((1 << 24) + (ray1.color[0] << 16) + (ray1.color[1] << 8) + ray1.color[2])
 
-                    createSphere(middle_point)
+                    createSphere(middle_point, color)
                 }
             }
-            
-            
         }
     </script>
 
