@@ -13,8 +13,8 @@
     <script src="lib/LineLineIntersect.js"></script>
     
     <script>
-        var RenderingWidth = Math.ceil(window.innerWidth / 10)
-        var RenderingHeight = Math.ceil(window.innerHeight / 10)
+        var RenderingWidth = Math.ceil(window.innerWidth / 1)
+        var RenderingHeight = Math.ceil(window.innerHeight / 1)
         
         const scene = new THREE.Scene();
         const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.000000001, 1000 );
@@ -32,16 +32,15 @@
         const material2 = new THREE.MeshPhongMaterial( { color: 0xffff00 } );
         const cone = new THREE.Mesh( geometry2, material2 );
         scene.add( cone );
-        // const geometry = new THREE.BoxGeometry();
-        // const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
-        // const cube = new THREE.Mesh( geometry, material );
-        // scene.add( cube );
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+        const cube = new THREE.Mesh( geometry, material );
+        scene.add( cube );
         
         // const geometry = new THREE.TorusGeometry( 2, 0.4, 5, 100 );
         // const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
         // const torus = new THREE.Mesh( geometry, material );
         // scene.add( torus );
-
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
         scene.add(ambientLight)
@@ -143,10 +142,16 @@
         var SPHERE_GEOMETRY = new THREE.SphereGeometry(0.01,16,16);
         var SPHERE_MATERIAL = new THREE.MeshBasicMaterial( {color: 0xff0000} );
         
-        function createSphere(v){
+        function createSphere(v, color){
+
+            var material = SPHERE_MATERIAL
+
+            if(color){
+                material = new THREE.MeshBasicMaterial( {color: color} );
+            }
+
             const plane_geometry = SPHERE_GEOMETRY
-            const plane_material = SPHERE_MATERIAL
-            const plane = new THREE.Mesh( plane_geometry, plane_material );
+            const plane = new THREE.Mesh( plane_geometry, material );
             plane.position.set(v.x, v.y, v.z)
             scene.add(plane);
         }
@@ -343,9 +348,7 @@
     
     <script>
         addViewCamera(0,0,5)
-        addViewCamera(0,0,-5)
-        addViewCamera(0,5,0)
-        addViewCamera(0,-5,0)
+        addViewCamera(-2,0,5)
     </script>
     
     <script>
@@ -395,7 +398,7 @@
     </script>
     
     <script>
-        var domain = "http://40be-104-199-238-84.ngrok.io/"
+        var domain = "http://26c0-34-86-13-140.ngrok.io"
         
         async function onSubmit(img1, img2){
             try{
@@ -446,21 +449,23 @@
                 var rayMatches =  await onSubmit(view_cameras[i].image, view_cameras[i+1].image);
                 
                 for(var j=0; j<rayMatches.length; j++){
-                    var ray1 = view_cameras[i].rays.find(({x,y}) => {return (x==rayMatches[j].img1.x && y==rayMatches[j].img1.y)})
-                    var ray2 = view_cameras[i+1].rays.find(({x,y}) => {return (x==rayMatches[j].img2.x && y==rayMatches[j].img2.y)})
+                    var ray1 = getRay(rayMatches[j].img1.x, rayMatches[j].img1.y, view_cameras[i])
+                    var ray2 = getRay(rayMatches[j].img2.x, rayMatches[j].img2.y, view_cameras[i+1])
+
+                    // createLine(ray1.start_point, ray1.end_point, true)
+                    // createLine(ray2.start_point, ray2.end_point, true)
+
+                    var nearest_points = intersectionHelper(ray1.start_point, ray1.end_point, ray2.start_point, ray2.end_point)
                     
-                    if(ray1 && ray2){
-                        
-                        var nearest_points = intersectionHelper(ray1.start_point, ray1.end_point, ray2.start_point, ray2.end_point)
-                        
-                        var middle_point = {
-                            x: (nearest_points.pa.x + nearest_points.pb.x) / 2,
-                            y: (nearest_points.pa.y + nearest_points.pb.y) / 2,
-                            z: (nearest_points.pa.z + nearest_points.pb.z) / 2
-                        }
-                        
-                        createSphere(middle_point)
+                    var middle_point = {
+                        x: (nearest_points.pa.x + nearest_points.pb.x) / 2,
+                        y: (nearest_points.pa.y + nearest_points.pb.y) / 2,
+                        z: (nearest_points.pa.z + nearest_points.pb.z) / 2
                     }
+                    
+                    var color = ((1 << 24) + (ray1.color[0] << 16) + (ray1.color[1] << 8) + ray1.color[2])
+
+                    createSphere(middle_point)
                 }
             }
             
@@ -470,7 +475,6 @@
 
     <script>
         function getRay(_x, _y, {cam, plane, buffer}){
-
             var scale_x = plane.geometry.parameters.width  / RenderingWidth
             var scale_y = plane.geometry.parameters.height / RenderingHeight
 
@@ -485,11 +489,9 @@
             ray.applyQuaternion(cam.quaternion)
             ray.add(cam.position)
 
-            createLine(cam.position, ray, new THREE.Color(0xff0000))
-
             return {
-                from : cam.position,
-                to   : ray,
+                start_point : cam.position,
+                end_point   : ray,
                 color: getPixelsFromRGBABuffer(parseInt(_x),parseInt(_y), buffer)  
             }
         }
