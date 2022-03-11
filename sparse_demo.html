@@ -210,7 +210,7 @@
         var RenderingHeight = Math.ceil(window.innerHeight / 1)
         
         const scene = new THREE.Scene();
-        const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.000000001, 1000 );
+        const editor_camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.00001, 1000 );
         const fov = 45
         var view_cameras = []
         
@@ -316,7 +316,7 @@
             var plane_height  = hyp * Math.cos( toRad(90 - cam.fov/2) ) * 2
             var plane_width = plane_height * cam.aspect
             
-            console.log("Plane Dims", [plane_width, plane_height])
+            // console.log("Plane Dims", [plane_width, plane_height])
             
             return [plane_width, plane_height]
         }
@@ -584,12 +584,12 @@
                 createSphere(middle_point)
             }
             
-            console.log(intersecting_rays_to_render)
+            // console.log(intersecting_rays_to_render)
         }   
     </script>
     
     <script>
-        var domain = "http://fea4-35-230-161-18.ngrok.io"
+        var domain = "http://aff5-34-125-250-140.ngrok.io"
         
         async function onSubmit(img1, img2){
             try{
@@ -617,8 +617,11 @@
                 opt.text = "Feature Match "+ document.getElementsByClassName("feature_img").length
                 features.appendChild(opt);
                 
+                console.log("SuperGlue Time: ", data.total_time)
+
                 var ray_to_ray_matches = []
                 
+                console.time("Point Matching Time")
                 for(var i = 0; i < data.matches.length; i++){
                     if(data.matches[i] == -1) continue;
                     
@@ -633,6 +636,7 @@
                         }
                     })
                 }
+                console.timeEnd("Point Matching Time")
                 
                 // console.log(ray_to_ray_matches)
                 
@@ -647,7 +651,8 @@
             
             for(var i=0; i<view_cameras.length; i++){
                 var rayMatches =  await onSubmit(view_cameras[i].image, view_cameras[(i+1) % view_cameras.length].image);
-                
+            
+                console.time("RayCasting")
                 for(var j=0; j<rayMatches.length; j++){
                     var ray1 = getRay(rayMatches[j].img1.x, rayMatches[j].img1.y, view_cameras[i])
                     var ray2 = getRay(rayMatches[j].img2.x, rayMatches[j].img2.y, view_cameras[(i+1) % view_cameras.length])
@@ -667,6 +672,7 @@
                     
                     createSphere(middle_point, color)
                 }
+                console.timeEnd("RayCasting")
             }
         }
     </script>
