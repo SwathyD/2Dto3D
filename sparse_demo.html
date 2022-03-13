@@ -589,7 +589,7 @@
     </script>
     
     <script>
-        var domain = "http://aff5-34-125-250-140.ngrok.io"
+        var domain = "http://ccaa-34-74-213-61.ngrok.io"
         
         async function onSubmit(img1, img2){
             try{
@@ -649,6 +649,8 @@
         async function getRayMatches(){
             document.getElementById("features_div").style.display = 'inline';
             
+            window.pointCloud = []
+
             for(var i=0; i<view_cameras.length; i++){
                 var rayMatches =  await onSubmit(view_cameras[i].image, view_cameras[(i+1) % view_cameras.length].image);
             
@@ -670,6 +672,8 @@
                     
                     var color = ((1 << 24) + (ray1.color[0] << 16) + (ray1.color[1] << 8) + ray1.color[2])
                     
+                    pointCloud.push(middle_point)
+
                     createSphere(middle_point, color)
                 }
                 console.timeEnd("RayCasting")
