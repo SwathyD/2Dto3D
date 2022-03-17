@@ -103,6 +103,7 @@
             </select> 
         </div>
         <div class="navitem"><button onclick="getRayMatches()">Get point cloud</button></div>
+        <div class="navitem"><button onclick="loadXYZ()">Load point cloud</button></div>
         <div class="navitem" id="features_div"><label> Feature Map </label>  
             <select id="features">   
                 <option value = "none"> None </option>   
@@ -701,6 +702,18 @@
                 start_point : cam.position,
                 end_point   : ray,
                 color: getPixelsFromRGBABuffer(parseInt(_x),parseInt(_y), buffer)  
+            }
+        }
+    </script>
+    <script id="data" src="xyz.js"></script>
+    <script>
+        function loadXYZ(){
+            for(var cluster of clusteredPointCloud){
+                var color = getRandomInt(0, 16777215+1)
+
+                for(var point of cluster){
+                    createSphere({x: point[0], y: point[1], z: point[2]}, color)
+                }
             }
         }
     </script>
