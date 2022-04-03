@@ -8,24 +8,38 @@
 var clustering = require('density-clustering');
 var optics = new clustering.OPTICS();
 
-var data = require('./pc.json')
+var data = require('./external_pruned.json')
 
-var dataset = data.map((obj) => [obj.x, obj.y, obj.z] )
+var dataset = data.map((obj) =>{ 
+    var pt = [obj.x, obj.y, obj.z] 
 
+    pt['ref'] = obj
+
+    return pt
+})
+console.time("time")
 // parameters: 2 - neighborhood radius, 2 - number of points in neighborhood to form a cluster
-var clusters = optics.run(dataset, 0.5, 4);
+var clusters = optics.run(dataset, 0.2, 4);
 var plot = optics.getReachabilityPlot();
 
 var op_data = []
 
-for(var cluster of clusters){
-    var clone = []
+var biggest_i = 0
 
-    for(var idx of cluster){
-        clone.push(dataset[idx])
+for(var i = 1; i < clusters.length; i++){
+    if(clusters[i].length > clusters[biggest_i].length){
+        biggest_i = i
     }
-
-    op_data.push(clone)
 }
 
-console.log("var clusteredPointCloud = " + JSON.stringify(op_data, undefined, 4))
+var clone = []
+
+for (var idx of clusters[biggest_i]) {
+    clone.push(dataset[idx])
+}
+
+op_data.push(clone)
+
+
+console.timeEnd("time")
+// console.log("var clusteredPointCloud = " + JSON.stringify(op_data, undefined, 4))

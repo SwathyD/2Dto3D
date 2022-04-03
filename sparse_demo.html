@@ -283,11 +283,18 @@
             constructNearPlaneOfCamera(view_cameras[view_cameras.length - 1])
             // constructRays(view_cameras[view_cameras.length - 1])
             
-            // scene.remove(gridHelper)
-            // scene.remove(axesHelper)
+            for(var i = 0; i < view_cameras.length - 1; i++){
+                scene.remove(view_cameras[i].cam)
+                scene.remove(view_cameras[i].plane)
+            }
+            
             renderer.render(scene, view_camera, renderTarget, true)
-            // scene.add(gridHelper)
-            // scene.add(axesHelper)
+            
+            for(var i = 0; i < view_cameras.length - 1; i++){
+                scene.add(view_cameras[i].cam)
+                scene.add(view_cameras[i].plane)
+            }
+
             extractViewCameraImageToBuffer(view_cameras[view_cameras.length - 1])
             
             addCameraToList()
@@ -351,6 +358,8 @@
             const plane = new THREE.Mesh( plane_geometry, material );
             plane.position.set(v.x, v.y, v.z)
             scene.add(plane);
+
+            return {mesh: plane, color: color}
         }
         
         function constructRays({cam, plane}){
@@ -589,15 +598,18 @@
         }   
     </script>
     
+    <script src="./lib/clustering.js"></script>
+
     <script>
-        var domain = "http://ccaa-34-74-213-61.ngrok.io"
+        var domain = "http://7327-34-83-88-85.ngrok.io"
         
         async function onSubmit(img1, img2){
             try{
                 var data = new FormData()
                 data.append('img1', img1)
                 data.append('img2', img2)
-                
+                data.append('match_threshold', "0.5")
+
                 var response = await fetch(domain + "/detectFeatureMatches", {
                     method: "POST",
                     body : data,
@@ -660,9 +672,6 @@
                     var ray1 = getRay(rayMatches[j].img1.x, rayMatches[j].img1.y, view_cameras[i])
                     var ray2 = getRay(rayMatches[j].img2.x, rayMatches[j].img2.y, view_cameras[(i+1) % view_cameras.length])
                     
-                    // createLine(ray1.start_point, ray1.end_point, true)
-                    // createLine(ray2.start_point, ray2.end_point, true)
-                    
                     var nearest_points = intersectionHelper(ray1.start_point, ray1.end_point, ray2.start_point, ray2.end_point)
                     
                     var middle_point = {
@@ -673,15 +682,64 @@
                     
                     var color = ((1 << 24) + (ray1.color[0] << 16) + (ray1.color[1] << 8) + ray1.color[2])
                     
-                    pointCloud.push(middle_point)
+                    var mc = createSphere(middle_point, color)
 
-                    createSphere(middle_point, color)
+                    pointCloud.push({middle_point, mesh: mc.mesh, color: mc.color})
                 }
                 console.timeEnd("RayCasting")
             }
+
+            filterNoise()
         }
     </script>
     
+    <script>
+        function filterNoise(){
+            filterExteriorNoise()
+        }
+
+        function filterExteriorNoise(){
+            var optics = new OPTICS();
+
+            var dataset = pointCloud.map((point) =>{ 
+                var pt = [point.middle_point.x, point.middle_point.y, point.middle_point.z]
+
+                pt['ref'] = point
+
+                return pt
+            })
+
+            console.time("OPTICS")
+
+            // parameters: 2 - neighborhood radius, 2 - number of points in neighborhood to form a cluster
+            var clusters = optics.run(dataset, 0.35, 4);
+
+            var op_data = []
+
+            var biggest_i = 0
+
+            for(var i = 1; i < clusters.length; i++){
+                if(clusters[i].length > clusters[biggest_i].length){
+                    biggest_i = i
+                }
+            }
+
+            for (var idx of clusters[biggest_i]) {
+                op_data.push(dataset[idx])
+            }
+
+            console.timeEnd("OPTICS")
+
+            for(var point of pointCloud){
+                scene.remove(point.mesh)
+            }
+
+            for(var point of op_data){
+                createSphere({x: point[0], y: point[1], z: point[2]}, 0xFF0000)
+            }
+        }
+    </script>
+
     <script>
         function getRay(_x, _y, {cam, plane, buffer}){
             var scale_x = plane.geometry.parameters.width  / RenderingWidth
@@ -705,7 +763,27 @@
             }
         }
     </script>
-    <script id="data" src="xyz.js"></script>
+    <script id="data" src="pc.js"></script>
+    <script>
+        async function createSubjectMask(cam){
+            var mask = new Uint8Array(cam.buffer)
+
+            for(var i = 0; i < mask.length; i+=4){
+                if(mask[i] || mask[i+1] || mask[i+2]){
+                    mask[i]   = 255
+                    mask[i+1] = 255
+                    mask[i+2] = 255
+                }
+            }
+
+            cam.mask = mask
+            cam.maskImage = await getImageFromBuffer(cam.mask)
+
+            var url = URL.createObjectURL(cam.maskImage)
+
+            window.open(url)
+        }
+    </script>
     <script>
         function loadXYZ(){
             for(var cluster of clusteredPointCloud){
