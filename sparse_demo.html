@@ -298,6 +298,8 @@
             extractViewCameraImageToBuffer(view_cameras[view_cameras.length - 1])
             
             addCameraToList()
+
+            createSubjectMask(view_cameras[view_cameras.length - 1])
         }
         
         function constructNearPlaneOfCamera(view_cam_context){
@@ -501,7 +503,7 @@
             for(var y = 0; y <  RenderingHeight; y++){
                 for(var x = 0; x <  RenderingWidth; x++){
                     var pixel = getPixelsFromRGBABuffer(x, y, rgbData);    
-                    mImgData.data[dstIndex] = pixel[0];		// r
+                    mImgData.data[dstIndex]   = pixel[0];		// r
                     mImgData.data[dstIndex+1] = pixel[1];	// g
                     mImgData.data[dstIndex+2] = pixel[2];	// b
                     mImgData.data[dstIndex+3] = 255         //aplha
@@ -544,11 +546,18 @@
         
         function getPixelsFromRGBABuffer(col, row, buffer){
             return [ 
-            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4)     ],
-            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 1) ],
-            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 2) ],
-            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 3) ]
+                buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4)     ],
+                buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 1) ],
+                buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 2) ],
+                buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 3) ]
             ]
+        }
+
+        function setPixelOfRGBABuffer(col, row, buffer, pix){
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4) ]     = pix[0]
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 1) ] = pix[1]
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 2) ] = pix[2]
+            buffer[ (RenderingWidth * 4 * RenderingHeight - RenderingWidth * 4 * (row+1)) + (col * 4 + 3) ] = pix[3]
         }
     </script>
     
@@ -777,11 +786,48 @@
             }
 
             cam.mask = mask
-            cam.maskImage = await getImageFromBuffer(cam.mask)
 
-            var url = URL.createObjectURL(cam.maskImage)
+            var first_row = -1
+            var first_col = -1
 
-            window.open(url)
+            var last_row = -1
+            var last_col = -1
+
+            for(var row = 0; row < RenderingHeight; row++){
+                for (var col = 0; col < RenderingWidth; col++) {
+
+                    var pix = getPixelsFromRGBABuffer(col, row, cam.mask)
+
+                    if(pix[0] || pix[1] || pix[2]){
+
+                        if( first_row == -1 || row < first_row ){
+                            first_row = row
+                        }
+                        if( first_col == -1 || col < first_col ){
+                            first_col = col
+                        }
+
+                        if(last_row == -1 || row > last_row){
+                            last_row = row
+                        }
+                        if(last_col == -1 || col > last_col){
+                            last_col = col
+                        }
+                        
+                    }
+
+                }
+            }
+
+            cam.maskMetaData = {
+                bb: {first_row, first_col, last_row, last_col}
+            }
+
+            // cam.maskImage = await getImageFromBuffer(cam.mask)
+
+            // var url = URL.createObjectURL(cam.maskImage)
+
+            // window.open(url)
         }
     </script>
     <script>
@@ -795,5 +841,7 @@
             }
         }
     </script>
+
+    <script src="lib/bary.js"></script>
 </body>
 </html>
