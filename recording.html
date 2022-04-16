@@ -1,0 +1,111 @@
+<html>
+    <head>
+        <title>Scene Recording</title>
+        <style>
+            body, html { margin: 0; padding: 0; overflow: hidden; }
+        </style>
+    </head>
+    <body>
+        <script src="lib/threejs.js"></script>
+        <script src="lib/whammy.js"></script>
+
+        <script>
+            var RenderingWidth  = Math.ceil(window.innerWidth / 1)
+            var RenderingHeight = Math.ceil(window.innerHeight / 1) 
+
+            var fps = 30
+            const fov = 45
+
+            var global = {}
+
+            function init(){
+                global.scene = new THREE.Scene();
+
+                global.renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
+                global.renderer.setSize( window.innerWidth, window.innerHeight );
+                document.body.appendChild( global.renderer.domElement );
+
+                global.camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, 0.1, 1000);
+                global.camera.position.x = 3
+                global.camera.position.y = 3
+                global.camera.position.z = 3
+
+                global.camera.lookAt(0, 0, 0)
+
+                const geometry = new THREE.BoxGeometry();
+                const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+                global.cubeMesh = new THREE.Mesh( geometry, material );
+                global.scene.add( global.cubeMesh );
+            }
+
+            var offset = 0.05
+
+            function tick(){
+                if(global.cubeMesh.position.x > 2){
+                    offset = -0.05
+                }
+                if(global.cubeMesh.position.x < -2){
+                    offset = 0.05
+                }
+
+                global.cubeMesh.position.x += offset
+                global.renderer.render( global.scene, global.camera );
+            }
+
+            function record(frame_count){
+                var encoder = new Whammy.Video(fps);
+
+                var stream = global.renderer.domElement.captureStream(30)
+                var recordedChunks = [];
+                var recorder = new MediaRecorder(stream, {mimeType: "video/webm; codecs=vp9"})
+
+                recorder.ondataavailable = handleDataAvailable;
+
+                function handleDataAvailable(event) {
+                    console.log("data-available");
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                        console.log(recordedChunks);
+                        download();
+                    } else {
+                        // ...
+                    }
+                }
+
+                function download() {
+                    var blob = new Blob(recordedChunks, {
+                        type: "video/webm"
+                    });
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display: none";
+                    a.href = url;
+                    a.download = "test.webm";
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                }
+
+                recorder.start()
+
+                for(var i = 0; i < frame_count; i++){
+                    let i_cpy = i
+
+                    setTimeout(() => {
+                        
+                        tick()
+
+                    }, i * 20);
+                }
+
+                setTimeout(() => {
+                    recorder.stop()
+                }, 4000);
+
+            }
+
+            init()
+            // record(120)
+        </script>
+    </body>
+</html>
