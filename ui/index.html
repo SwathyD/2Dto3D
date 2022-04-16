@@ -38,7 +38,7 @@
                 <center>
                     <p>Product Title</p>
                     <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" >Video preview</button>
+                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(1)">Video preview</button>
                 </center>
             </div>
             <div class="col-md-6 col-md-4">
@@ -46,7 +46,7 @@
                 <center>
                     <p>Product Title</p>
                     <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" >Video preview</button>
+                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(2)">Video preview</button>
                 </center>
             </div>
             <div class="col-md-6 col-md-4">
@@ -54,7 +54,7 @@
                 <center>
                     <p>Product Title</p>
                     <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" >Video preview</button>
+                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(3)">Video preview</button>
                 </center>
             </div>
             <div class="col-md-6 col-md-4">
@@ -62,7 +62,7 @@
                 <center>
                     <p>Product Title</p>
                     <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" >Video preview</button>
+                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(4)">Video preview</button>
                 </center>
             </div>
             <div class="col-md-6 col-md-4">
@@ -70,7 +70,7 @@
                 <center>
                     <p>Product Title</p>
                     <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" >Video preview</button>
+                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(5)">Video preview</button>
                 </center>
             </div>
             <div class="col-md-6 col-md-4">
@@ -78,10 +78,16 @@
                 <center>
                     <p>Product Title</p>
                     <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" >Video preview</button>
+                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(6)">Video preview</button>
                 </center>
             </div>
         </div>
     </div>
+
+    <script>
+       function startVideoPreview(id){
+            window.location.href = "videoPreview.html?model_id="+id;
+        }
+    </script>
 </body>
 </html>

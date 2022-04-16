@@ -1,0 +1,80 @@
+<script src="lib/jquery-3.3.1.slim.min.js"></script>
+<script src="lib/bootstrap.min.js"></script>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title></title>
+    
+    <link rel="stylesheet" href="lib/bootstrap.min.css" >
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <script>
+        var model_id
+        window.onload = function(){
+            var url = document.location.href, 
+            params = url.split('?')[1].split('&'),
+            data={}, tmp;
+
+            for(var i=0, l = params.length; i<l; i++){
+                tmp = params[i].split('=');
+                data[tmp[0]] = tmp[1]
+            }
+
+            model_id = data.model_id
+        }
+
+        var domain = "http://7327-34-83-88-85.ngrok.io"
+        
+        async function uploadVideo(){
+            var data = new FormData()
+            vd = document.getElementById('video').files[0]
+            data.append('video', vd)
+            data.append('model_id', model_id)
+
+            var response = await fetch(domain + "/getTransforms", {
+                method: "POST",
+                body : data,
+                'Content-Type': 'multipart/form-data'
+            })
+        }
+    </script>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <a class="navbar-brand" href="index.html">Realistico</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link">Hello Swathy</a>
+                </li>
+            </ul>
+            <span class="navbar-text">
+                <button type="button" class="btn btn-outline-primary" onclick="window.location='/logout'">Logout</button>
+            </span>
+            
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 col-md-4">
+                <img src="images/cam1.png" width="100%" height="70%">
+                <center>
+                    <p>Product Title</p>
+                </center>
+            </div>
+        </div>
+        <label>Select a video of your desired premise</label> <input type="file" id="video" name="video">
+        <button type="button" class="btn btn-primary" onclick="uploadVideo()">Upload Video</button>
+                
+    </div>
+
+   
+</body>
+</html>
