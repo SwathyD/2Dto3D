@@ -24,7 +24,7 @@
 </head>
 <body>
     <script>
-        var model_id
+        var model_title
         window.onload = function(){
             var url = document.location.href, 
             params = url.split('?')[1].split('&'),
@@ -35,10 +35,12 @@
                 data[tmp[0]] = tmp[1]
             }
             
-            model_id = data.model_id
+            model_title = data.model
+            
         }
         
-        var domain = "http://7327-34-83-88-85.ngrok.io"
+        var domain = "http://e6cc-35-199-42-38.ngrok.io"
+        var static_domain = domain+"/static"
         
         function uploadVideo(){
             const vid = document.getElementById('frame')
@@ -83,6 +85,35 @@
             document.getElementById("highlight").style.top = event.y-5;
         }
     </script>
+    <script>
+        (async function(){
+            var data = new FormData()
+            data.append('title', model_title)
+            headers = {}
+            var response = await fetch(domain + "/getVideos", {
+                method: "POST",
+                body : data,
+                mode: 'cors',
+                headers: headers,
+                'Content-Type': 'multipart/form-data'
+            })
+            window.db = await response.json()
+            
+            renderList(db)
+        })()
+
+        // [{"product_title":"Sunflower",
+        //      "ip_videos":["desk.mp4","desk.mp4"],
+        //      "op_videos":["desk.mp4"]
+        //     }]
+
+        function renderList(videos){
+            console.log(videos)
+            var ipTemplate = document.getElementById("sampleIp")
+            var opTemplate = document.getElementsByClassName("sampleOp")
+            var ipSelectTemplate = document.getElementsByClassName("ipSelect")
+        }
+    </script>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <a class="navbar-brand" href="index.html">Realistico</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,7 +132,7 @@
             </ul>
             <span class="navbar-text">
                 <button type="button" class="btn btn-outline-primary"
-                    onclick="window.location='/logout'">Logout</button>
+                onclick="window.location='/logout'">Logout</button>
             </span>
         </div>
     </nav>
@@ -117,37 +148,33 @@
         </div>
         <p>Recent outputs: </p>
         
-        <div class="row">
+        <div class="row" id="opRow">
             
-            <div class="col-md-4">
+            <div class="col-md-4" id="sampleOp" style="display: none;">
                 <video width="100%"  controls>
-                    <source id="vid1" src="videos/desk.mp4" type="video/mp4">
+                    <source id="vid1" src="" type="video/mp4">
                 </video>
             </div>
             
         </div><br><br>
         <p>Recent videos: </p>
         
-        <div class="row">
+        <div class="row" id="ipRow">
             
-            <div class="col-md-4">
+            <div class="col-md-4" id="sampleIp" style="display: none;">
                 <video width="100%"  controls>
-                    <source id="vid1" src="videos/desk.mp4" type="video/mp4">
+                    <source src="videos/desk.mp4" type="video/mp4">
                 </video>
             </div>
-            <div class="col-md-4">
-                <video width="100%"  controls>
-                    <source id="vid2" src="videos/desk.mp4" type="video/mp4">
-                </video>
-            </div>
+            
         </div>
-        <div class="row" style="color: blue;">
-            <div class="col-md-4" onclick="uploadRecentVideo('vid1')">
+        <div class="row" style="color: blue;" id="ipSelect">
+            <div class="col-md-4" style="display: none;">
                 Select
             </div>
-            <div class="col-md-4" onclick="uploadRecentVideo('vid2')">
+            <!-- <div class="col-md-4" onclick="uploadRecentVideo('vid2')">
                 Select
-            </div>
+            </div> -->
         </div><br><br>
         <label>Select a video of your desired premise</label> <input type="file" id="video" name="video">
         <button type="button" class="btn btn-primary" onclick="uploadVideo()">Upload Video</button>

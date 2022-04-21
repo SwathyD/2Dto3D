@@ -1,0 +1,71 @@
+<script src="lib/jquery-3.3.1.slim.min.js"></script>
+<script src="lib/bootstrap.min.js"></script>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title></title>
+    
+    <link rel="stylesheet" href="lib/bootstrap.min.css" >
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <a class="navbar-brand" href="sIndex.html" style="font-size: 4em;">Realistico</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link"></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link">Hello Seller!</a>
+                </li>
+            </ul>
+            <span class="navbar-text">
+                <button type="button" class="btn btn-outline-primary btn-lg" onclick="window.location='/logout'">Logout</button>
+            </span>
+        </div>
+    </nav>
+    <br>
+    <br>
+   <div class="container">
+    <label style="font-size:xx-large;">Enter name of the product</label> <input style="font-size:xx-large;" type="text" id="name" name="name">
+    <br><br>   
+    <label style="font-size:xx-large;">Select the gltf file of the product</label> <input style="font-size:xx-large;" type="file" id="video" name="video">
+    <br><br>
+    <label style="font-size:xx-large;">Select the product preview image</label> <input style="font-size:xx-large;" type="file" id="image" name="image">
+    <br><br>
+    <button type="button" style="font-size: xx-large;" class="btn btn-info btn-lg" onclick="uploadProduct()">Upload Product</button>
+   </div>
+</body>
+
+<script>
+    var domain = "http://80af-35-199-42-38.ngrok.io"
+       async function uploadProduct(){
+            var data = new FormData()
+            gltf = document.getElementById('video').files[0]
+            preview_image = document.getElementById('image').files[0]
+            title = document.getElementById('name').value
+            data.append('gltf_file', gltf)
+            data.append('name', title)
+            data.append('image',preview_image)
+            
+            headers = {}
+            var response = await fetch(domain + "/newProduct", {
+                method: "POST",
+                body : data,
+                mode: 'cors',
+                headers: headers,
+                'Content-Type': 'multipart/form-data'
+            }).then(response=>alert("Product added"))
+        }
+</script>
+</html>
