@@ -14,7 +14,7 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-        <a class="navbar-brand" href="index.html">Realistico</a>
+        <a class="navbar-brand" href="index.html" style="font-size: 4em;">Realistico</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,62 +35,145 @@
         </div>
     </nav>
     
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6 col-md-4">
-                <img src="images/cam1.png" width="100%" height="70%">
-                <center>
-                    <p>Product Title</p>
-                    <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(1)">Video preview</button>
-                </center>
+    <div class="viewing_track">
+        <div class="item_container" data-which_shown="one" data-item_idx="-1">
+            <div class="widget">
+                <div class="widget_option" onclick="actionOne(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="transform: scale(0.5);">
+                        <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                        <path d="M528 32H144c-26.51 0-48 21.49-48 48v256c0 26.51 21.49 48 48 48H528c26.51 0 48-21.49 48-48v-256C576 53.49 554.5 32 528 32zM223.1 96c17.68 0 32 14.33 32 32S241.7 160 223.1 160c-17.67 0-32-14.33-32-32S206.3 96 223.1 96zM494.1 311.6C491.3 316.8 485.9 320 480 320H192c-6.023 0-11.53-3.379-14.26-8.75c-2.73-5.367-2.215-11.81 1.332-16.68l70-96C252.1 194.4 256.9 192 262 192c5.111 0 9.916 2.441 12.93 6.574l22.35 30.66l62.74-94.11C362.1 130.7 367.1 128 373.3 128c5.348 0 10.34 2.672 13.31 7.125l106.7 160C496.6 300 496.9 306.3 494.1 311.6zM456 432H120c-39.7 0-72-32.3-72-72v-240C48 106.8 37.25 96 24 96S0 106.8 0 120v240C0 426.2 53.83 480 120 480h336c13.25 0 24-10.75 24-24S469.3 432 456 432z" />
+                    </svg>
+                </div>
+                <div class="widget_option" onclick="actionTwo(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="transform: scale(0.5);">
+                        <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                        <path d="M234.5 5.709C248.4 .7377 263.6 .7377 277.5 5.709L469.5 74.28C494.1 83.38 512 107.5 512 134.6V377.4C512 404.5 494.1 428.6 469.5 437.7L277.5 506.3C263.6 511.3 248.4 511.3 234.5 506.3L42.47 437.7C17 428.6 0 404.5 0 377.4V134.6C0 107.5 17 83.38 42.47 74.28L234.5 5.709zM256 65.98L82.34 128L256 190L429.7 128L256 65.98zM288 434.6L448 377.4V189.4L288 246.6V434.6z" />
+                    </svg>
+                </div>
+                <div class="widget_option" onclick="actionThree(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" style="transform: scale(0.5);">
+                        <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                        <path d="M576 64H64c-35.2 0-64 28.8-64 64v256c0 35.2 28.8 64 64 64l128.3 .0001c25.18 0 48.03-14.77 58.37-37.73l27.76-61.65c7.875-17.5 24-28.63 41.63-28.63s33.75 11.13 41.63 28.63l27.75 61.63c10.35 22.98 33.2 37.75 58.4 37.75L576 448c35.2 0 64-28.8 64-64v-256C640 92.8 611.2 64 576 64zM160 304c-35.38 0-64-28.63-64-64s28.62-63.1 64-63.1s64 28.62 64 63.1S195.4 304 160 304zM480 304c-35.38 0-64-28.63-64-64s28.62-63.1 64-63.1s64 28.62 64 63.1S515.4 304 480 304z" />
+                    </svg>
+                </div>
+                <div class="widget_option" onclick="actionFour(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="transform: scale(0.5);">
+                        <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                        <path d="M384 112v288c0 26.51-21.49 48-48 48h-288c-26.51 0-48-21.49-48-48v-288c0-26.51 21.49-48 48-48h288C362.5 64 384 85.49 384 112zM576 127.5v256.9c0 25.5-29.17 40.39-50.39 25.79L416 334.7V177.3l109.6-75.56C546.9 87.13 576 102.1 576 127.5z" />
+                    </svg>
+                </div>
             </div>
-            <div class="col-md-6 col-md-4">
-                <img src="images/product.png" width="100%" height="70%">
-                <center>
-                    <p>Product Title</p>
-                    <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(2)">Video preview</button>
-                </center>
-            </div>
-            <div class="col-md-6 col-md-4">
-                <img src="images/cam1.png" width="100%" height="70%">
-                <center>
-                    <p>Product Title</p>
-                    <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(3)">Video preview</button>
-                </center>
-            </div>
-            <div class="col-md-6 col-md-4">
-                <img src="images/product.png" width="100%" height="70%">
-                <center>
-                    <p>Product Title</p>
-                    <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(4)">Video preview</button>
-                </center>
-            </div>
-            <div class="col-md-6 col-md-4">
-                <img src="images/cam1.png" width="100%" height="70%">
-                <center>
-                    <p>Product Title</p>
-                    <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(5)">Video preview</button>
-                </center>
-            </div>
-            <div class="col-md-6 col-md-4">
-                <img src="images/product.png" width="100%" height="70%">
-                <center>
-                    <p>Product Title</p>
-                    <button type="button" class="btn btn-primary" >Real time preview</button>
-                    <button type="button" class="btn btn-warning" onclick="startVideoPreview(6)">Video preview</button>
-                </center>
+            <div class="arena">
+                <span class="product_title">PRODUCT TITLE</span>
+                <div class="action_area">
+
+                    <div class="action_one action">
+                        <img class="product_image" src="https://dummyimage.com/600x400/000/fff" />
+                    </div>
+
+                    <div class="action_two action">
+                        <iframe style="height: 100%; width: 100%" src="" frameBorder="0"></iframe>
+                    </div>
+
+
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-       function startVideoPreview(id){
+        (async function(){
+            var response = await fetch("https://oooom.github.io/cdn/db.json")
+            window.db = await response.json()
+
+            // var db = [
+            //     {
+            //         product_title: "Sunflower",
+            //         product_image: "https://dummyimage.com/600x400/000/fff",
+            //         product_gltf : "sunflower.gltf",
+            //         z_loc        : 2
+            //     },
+            //     {
+            //         product_title: "Penguin Plushie Toy",
+            //         product_image: "https://dummyimage.com/600x400/000/fff",
+            //         product_gltf : "penguin_with_tex.glb",
+            //         z_loc        : 1
+            //     }
+            // ]
+            renderList(db)
+        })()
+
+        function startVideoPreview(id){
             window.location.href = "videoPreview.html?model_id="+id;
+        }
+
+        function actionOne(option_ref){
+            var item_root = option_ref.parentElement.parentElement
+
+            var is_one_shown = item_root.getAttribute("data-which_shown") == "one"
+
+            if(!is_one_shown){
+                var all_actions = item_root.getElementsByClassName("action")
+
+                var first_action = all_actions[0]
+
+                for(var action of all_actions){
+                    action.style.display = "none"
+                }
+
+                first_action.style.display = "flex"
+
+                item_root.setAttribute("data-which_shown", "one")
+            }
+        }
+
+        function actionTwo(option_ref){
+            var item_root = option_ref.parentElement.parentElement
+
+            var is_two_shown = item_root.getAttribute("data-which_shown") == "two"
+
+            if(!is_two_shown){
+                var all_actions = item_root.getElementsByClassName("action")
+
+                var second_action = all_actions[1]
+
+                for(var action of all_actions){
+                    action.style.display = "none"
+                }
+
+                second_action.style.display = "flex"
+
+                item_root.setAttribute("data-which_shown", "two")
+            }
+        }
+
+        function actionThree(option_ref){
+            var item_root = option_ref.parentElement.parentElement
+
+            var idx = parseInt(item_root.getAttribute("data-item_idx"))
+
+            window.location.href = "https://192.168.1.2/2Dto3D/ui/realtime.html?model=" + db[idx].product_gltf
+        }
+
+        function renderList(products){
+            var template = document.getElementsByClassName("item_container")[0]
+            var list     = document.getElementsByClassName("viewing_track")[0]
+
+            var idx = 0
+            for(var product of products){
+                var clone = template.cloneNode(true)
+
+                clone.style.display = "flex"
+
+                clone.getElementsByClassName("product_title")[0].innerText = product.product_title
+                clone.getElementsByClassName("product_image")[0].src       = product.product_image  
+                clone.getElementsByTagName("iframe")[0].src                 = `https://192.168.1.2/2Dto3D/ui/viewer.html?model=${product.product_gltf}&z=${product.z_loc}`
+                
+                clone.setAttribute("data-item_idx", idx)
+                idx++
+
+                list.appendChild(clone)
+            }
         }
     </script>
 </body>

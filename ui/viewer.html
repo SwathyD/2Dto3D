@@ -1,0 +1,76 @@
+<html>
+    <head>
+        <title>Viewer</title>
+        <style>
+            body, html { margin: 0; padding: 0; overflow: hidden; }
+        </style>
+    </head>
+    <body>
+        
+    </body>
+    <script src="https://unpkg.com/three@0.126.0/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://s.cdpn.io/25480/OrbitControls.js"></script>
+    <script>
+        var width = window.innerWidth,
+            height = window.innerHeight;
+
+        
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(width, height);
+        // renderer.setClearColorHex( 0xffffff, 1 );
+        document.body.appendChild(renderer.domElement);
+        
+        var scene = new THREE.Scene();
+        
+        var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+        camera.position.z = 1;
+
+        scene.background = new THREE.Color(255, 255, 255)
+
+        scene.add(camera);
+
+        var light = new THREE.AmbientLight(0xffffff);
+        scene.add(light);
+
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        var geometry = new THREE.BoxGeometry(5,5,5);
+        var cubeMaterial = new THREE.MeshNormalMaterial(); 
+
+        // var mesh = new THREE.Mesh( geometry, cubeMaterial );
+        // scene.add( mesh );
+
+        var url_string = window.location.href;
+        var url = new URL(url_string);
+        var gltfURL = url.searchParams.get("model");
+        var z = url.searchParams.get("z")
+        camera.position.z = parseInt(z)
+
+        const loader = new THREE.GLTFLoader();
+        loader.load(`https://oooom.github.io/cdn/${gltfURL}`, function(gltf) {
+            scene.add( gltf.scene );
+        });
+
+        resize();
+        animate();
+        window.addEventListener('resize',resize);
+
+        function resize(){
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            
+            renderer.setSize(w,h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        }
+
+        function animate() {
+
+            renderer.render( scene, camera );
+            controls.update();
+
+            requestAnimationFrame( animate );
+        }
+    </script>
+</html>

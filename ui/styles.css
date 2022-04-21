@@ -52,8 +52,8 @@ font-family: 'Numans', sans-serif;
 }
 
 .container{
-height: 100%;
-align-content: center;
+    height: 100%;
+    align-content: center;
 }
 
 .card{
@@ -127,4 +127,75 @@ color: white;
 
 .links a{
 margin-left: 4px;
+}
+
+.item_container{
+    height:800px;
+    width: 100%;
+    /* background-color: green; */
+    margin-top: 80;
+    display: none;
+}
+
+.widget{
+    /* background-color: yellow; */
+    flex: 0.2;
+    display: flex;
+    flex-direction: column;
+}
+
+.widget_option{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.widget_option:active {
+    background-color: gray;
+}
+
+.arena{
+    /* background-color: green; */
+    flex: 0.8;
+    display: flex;
+    flex-direction: column;
+}
+
+.action_area{
+    flex: 0.9;
+    /* background-color: red; */
+}
+
+.viewing_track{
+    width: 100%;
+}
+
+.product_title{
+    flex: 0.1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 3em;
+}
+
+.product_preview{
+    flex: 0.9;
+}
+
+.action_one{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.action_two {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
 }
