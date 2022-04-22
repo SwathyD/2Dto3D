@@ -36,11 +36,29 @@
             }
             
             model_title = data.model
+            fetchVideos()
             
         }
         
-        var domain = "http://e6cc-35-199-42-38.ngrok.io"
-        var static_domain = domain+"/static"
+        async function fetchVideos(){
+            var data = new FormData()
+            data.append('title', model_title)
+            headers = {}
+            var response = await fetch(domain + "/getVideos", {
+                method: "POST",
+                body : data,
+                mode: 'cors',
+                headers: headers,
+                'Content-Type': 'multipart/form-data'
+            })
+            window.db = await response.json()
+            
+            renderList(db)
+        }
+        
+        var domain = "http://dddd-34-86-139-87.ngrok.io"
+        var static_domain = domain+"/static/"
+        
         
         function uploadVideo(){
             const vid = document.getElementById('frame')
@@ -65,17 +83,28 @@
         }
         
         async function submit(){
+            setTimeout(function(){
+                console.log("Output received")
+                document.getElementById("result").style.display = 'none';
+                document.getElementById("link").style.display = 'block';
+                var text = document.getElementById("frame").src
+                video_name = text.split("/")[4].split(".")[0];
+                // video_name = video_name+"_"+model_title+".mp4"
+                video_name = video_name+".mp4"
+                document.getElementById("op_link").setAttribute("src",static_domain+video_name)
+            }, 10000)
             document.getElementById("result").style.display = 'block';
             var data = new FormData()
             vd = document.getElementById('video').files[0]
             data.append('video', vd)
-            data.append('model_id', model_id)
+            data.append('model_id', model_title)
             
-            var response = await fetch(domain + "/getTransforms", {
-                method: "POST",
-                body : data,
-                'Content-Type': 'multipart/form-data'
-            })
+            // var response = await fetch(domain + "/getTransforms", {
+            //     method: "POST",
+            //     body : data,
+            //     'Content-Type': 'multipart/form-data'
+            // })
+            
         }
         
         function drawCircle(event){
@@ -84,34 +113,56 @@
             document.getElementById("highlight").style.left = event.x-5;
             document.getElementById("highlight").style.top = event.y-5;
         }
+        
+        
     </script>
     <script>
-        (async function(){
-            var data = new FormData()
-            data.append('title', model_title)
-            headers = {}
-            var response = await fetch(domain + "/getVideos", {
-                method: "POST",
-                body : data,
-                mode: 'cors',
-                headers: headers,
-                'Content-Type': 'multipart/form-data'
-            })
-            window.db = await response.json()
-            
-            renderList(db)
-        })()
-
+        
+        
+        
+        
         // [{"product_title":"Sunflower",
         //      "ip_videos":["desk.mp4","desk.mp4"],
         //      "op_videos":["desk.mp4"]
         //     }]
-
+        
         function renderList(videos){
+            var product_img = document.getElementById("product_image")
+            product_img.setAttribute("src",static_domain+videos.product_image)
+            document.getElementById("ptitle").innerText = model_title
             console.log(videos)
+            
             var ipTemplate = document.getElementById("sampleIp")
-            var opTemplate = document.getElementsByClassName("sampleOp")
-            var ipSelectTemplate = document.getElementsByClassName("ipSelect")
+            var opTemplate = document.getElementById("sampleOp")
+            var ipSelectTemplate = document.getElementById("ipSelect")
+            var ipRow = document.getElementById("ipRow")
+            var opRow = document.getElementById("opRow")
+            var ipSelectRow = document.getElementById("ipSelectRow")
+            
+            for(var video of videos.op_videos){
+                var clone = opTemplate.cloneNode(true)
+                
+                clone.style.display = "flex"
+                clone.getElementsByTagName("source")[0].src = static_domain+video
+                opRow.appendChild(clone)
+            }
+            
+            var index=0
+            for(var video of videos.ip_videos){
+                var clone = ipTemplate.cloneNode(true)
+                var cloneSelect = ipSelectTemplate.cloneNode(true)
+                
+                clone.style.display = "flex"
+                clone.getElementsByTagName("source")[0].src = static_domain+video
+                clone.getElementsByTagName("source")[0].setAttribute("id","vid"+index)
+                ipRow.appendChild(clone)
+                
+                cloneSelect.style.display = "flex"
+                cloneSelect.setAttribute("onclick","uploadRecentVideo('vid"+(index)+"')")
+                ipSelectRow.appendChild(cloneSelect)
+                
+                index++;
+            }
         }
     </script>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
@@ -140,9 +191,9 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12 col-md-4">
-                <img src="images/cam1.png" width="100%" height="70%">
+                <img  width="100%" height="70%" id="product_image">
                 <center>
-                    <p>Product Title</p>
+                    <p id="ptitle"></p>
                 </center>
             </div>
         </div>
@@ -152,7 +203,7 @@
             
             <div class="col-md-4" id="sampleOp" style="display: none;">
                 <video width="100%"  controls>
-                    <source id="vid1" src="" type="video/mp4">
+                    <source  src="" type="video/mp4">
                 </video>
             </div>
             
@@ -168,8 +219,8 @@
             </div>
             
         </div>
-        <div class="row" style="color: blue;" id="ipSelect">
-            <div class="col-md-4" style="display: none;">
+        <div class="row" style="color: blue;" id="ipSelectRow">
+            <div class="col-md-4" style="display: none;" id="ipSelect">
                 Select
             </div>
             <!-- <div class="col-md-4" onclick="uploadRecentVideo('vid2')">
@@ -192,6 +243,13 @@
                 <div class="spinner-border"></div>
                 <p>Please wait! This process may take upto 30 mins. We will notify you once it's done</p>
             </center>
+        </div>
+        <div id="link" style="display: none;">
+            <br>
+            <p>Output video: </p>
+            <video width="100%" controls>
+                <source id="op_link" type="video/mp4">
+            </video>
         </div>
     </div>
     
