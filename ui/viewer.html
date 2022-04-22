@@ -48,7 +48,7 @@
         camera.position.z = parseInt(z)
 
         const loader = new THREE.GLTFLoader();
-        loader.load(`https://oooom.github.io/cdn/${gltfURL}`, function(gltf) {
+        loader.load(gltfURL, function(gltf) {
             scene.add( gltf.scene );
         });
 
