@@ -23,6 +23,7 @@
     </style>
 </head>
 <body>
+    <script src="domain.js"></script>
     <script>
         var model_title
         window.onload = function(){
@@ -56,8 +57,7 @@
             renderList(db)
         }
         
-        var domain = "http://dddd-34-86-139-87.ngrok.io"
-        var static_domain = domain+"/static/"
+        
         
         
         function uploadVideo(){
@@ -90,9 +90,10 @@
                 var text = document.getElementById("frame").src
                 video_name = text.split("/")[4].split(".")[0];
                 // video_name = video_name+"_"+model_title+".mp4"
-                video_name = video_name+".mp4"
+                // video_name = video_name+".mp4"
+                video_name = model_title+"_"+video_name+".mkv"
                 document.getElementById("op_link").setAttribute("src",static_domain+video_name)
-            }, 10000)
+            }, 60 * 1000 * 20)
             document.getElementById("result").style.display = 'block';
             var data = new FormData()
             vd = document.getElementById('video').files[0]
@@ -110,8 +111,8 @@
         function drawCircle(event){
             document.getElementById("submit").style.display = 'block';
             document.getElementById("highlight").style.display = 'block';
-            document.getElementById("highlight").style.left = event.x-5;
-            document.getElementById("highlight").style.top = event.y-5;
+            document.getElementById("highlight").style.left = event.x-5 + scrollX;
+            document.getElementById("highlight").style.top = event.y-5 + scrollY;
         }
         
         
@@ -128,7 +129,7 @@
         
         function renderList(videos){
             var product_img = document.getElementById("product_image")
-            product_img.setAttribute("src",static_domain+videos.product_image)
+            product_img.setAttribute("src",static_domain + "/" +videos.product_image)
             document.getElementById("ptitle").innerText = model_title
             console.log(videos)
             
@@ -143,7 +144,7 @@
                 var clone = opTemplate.cloneNode(true)
                 
                 clone.style.display = "flex"
-                clone.getElementsByTagName("source")[0].src = static_domain+video
+                clone.getElementsByTagName("source")[0].src = static_domain + "/" + video
                 opRow.appendChild(clone)
             }
             
@@ -153,7 +154,7 @@
                 var cloneSelect = ipSelectTemplate.cloneNode(true)
                 
                 clone.style.display = "flex"
-                clone.getElementsByTagName("source")[0].src = static_domain+video
+                clone.getElementsByTagName("source")[0].src = static_domain + "/" +video
                 clone.getElementsByTagName("source")[0].setAttribute("id","vid"+index)
                 ipRow.appendChild(clone)
                 

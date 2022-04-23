@@ -24,14 +24,24 @@
         var scene = new THREE.Scene();
         
         var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
-        camera.position.z = 1;
+        camera.position.z = 10;
 
         scene.background = new THREE.Color(255, 255, 255)
 
         scene.add(camera);
 
-        var light = new THREE.AmbientLight(0xffffff);
+        // var light = new THREE.AmbientLight(0xffffff);
+        // scene.add(light);
+
+        var light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(0, 0, 10)
+        light.lookAt(new THREE.Vector3(0, 0, 0))
         scene.add(light);
+
+        var light2 = new THREE.DirectionalLight(0xffffff, 1);
+        light2.position.set(0, 0, -10)
+        light2.lookAt(new THREE.Vector3(0, 0, 0))
+        scene.add(light2);
 
         var controls = new THREE.OrbitControls(camera, renderer.domElement);
 

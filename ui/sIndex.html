@@ -70,10 +70,7 @@
             </div>
         </div>
     </div>
-<script>
-     var domain = "http://9934-35-199-42-38.ngrok.io";
-     var static_domain = domain+"/static"
-</script>
+<script src="domain.js"></script>
     <script>
         
 
@@ -153,7 +150,7 @@
 
             var idx = parseInt(item_root.getAttribute("data-item_idx"))
 
-            window.location.href = "https://192.168.1.2/2Dto3D/ui/realtime.html?model=" + db[idx].product_gltf
+            window.location.href = "https://"+web_ip+"/2Dto3D/ui/realtime.html?model=" + db[idx].product_gltf
         }
 
         function renderList(products){
@@ -168,7 +165,7 @@
 
                 clone.getElementsByClassName("product_title")[0].innerText = product.product_title
                 clone.getElementsByClassName("product_image")[0].src       = static_domain+"/"+product.product_image  
-                clone.getElementsByTagName("iframe")[0].src                 = `https://192.168.1.2/2Dto3D/ui/viewer.html?model=${static_domain+"/"+product.product_gltf}&z=${product.z_loc}`
+                clone.getElementsByTagName("iframe")[0].src                 = `http://${web_ip}:8080/2Dto3D/ui/viewer.html?model=${static_domain+"/"+product.product_gltf}&z=${product.z_loc}`
                 
                 clone.setAttribute("data-item_idx", idx)
                 idx++

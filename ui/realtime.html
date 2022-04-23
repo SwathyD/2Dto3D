@@ -73,7 +73,7 @@
             var gltfURL = url.searchParams.get("model");
 
             let flower;
-            loader.load(`https://oooom.github.io/cdn/${gltfURL}`, function(gltf) {
+            loader.load(gltfURL, function(gltf) {
                 flower = gltf.scene;
             });
 
