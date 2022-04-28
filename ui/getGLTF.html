@@ -1,0 +1,93 @@
+<script src="lib/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title></title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <a class="navbar-brand" href="sIndex.html" style="font-size: 4em; margin-left:2vw">Realistico</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link"></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" style="margin-left:35vw">Hello Seller!</a>
+                </li>
+            </ul>
+            <span class="navbar-text">
+                <button type="button" class="btn btn-outline-primary btn-lg" onclick="window.location='/logout'">Logout</button>
+            </span>
+        </div>
+    </nav>
+    <br>
+    <br>
+    <div class="container">
+        <label style="font-size:xx-large;">Select the video of the product</label> <input style="font-size:xx-large;" type="file" id="video" name="video">
+        <br><br>
+        
+        
+        <div class="col-md-12" id="sampleOp" style="display: none;">
+            <video width="100%"  controls>
+                <source id="frame" src="videos/penguin.mp4" type="video/mp4">
+            </video>
+        </div>
+        <br><br>     
+        <button type="button" style="font-size: xx-large;" class="btn btn-info btn-lg" onclick="uploadProduct()">Upload Product</button>
+        <br><br>  
+        <div id="result" style="display: none;">
+            <center>
+                <div class="spinner-border"></div>
+                <p style="font-size: x-large;">Please wait!</p>
+            </center>
+        </div>   
+        <div id="output" style="display:none">
+            <a style="font-size: x-large;" href="http://5f69-34-132-86-170.ngrok.io/static/penguin.glb">Click here to download gltf file</a>
+            <iframe id="op" style="height: 100%; width: 100%" src="" frameBorder="0"></iframe>
+        </div>
+    </div>
+</body>
+
+<script src="domain.js"></script>
+<script>
+    function uploadProduct(){
+        document.getElementById("result").style.display = "block"   
+        
+        setTimeout(function(){
+            document.getElementById("result").style.display = "none"   
+            document.getElementById("output").style.display = "block"   
+            document.getElementById("op").src = `http://${web_ip}:8085/2Dto3D/ui/viewer.html?model=${static_domain+"/penguin.glb"}&z=1`
+        },30000)
+    }
+    
+    document.querySelector("#video").onchange = function(e){
+        console.log("changed")
+        document.getElementById("sampleOp").style.display = "block"
+        // const vid = document.getElementById('frame')
+        // const file = document.getElementById('video').files[0]
+        // const reader = new FileReader();
+        
+        // reader.addEventListener("load", 
+        // function(){
+            //     vid.src = reader.result;
+            // },false);
+            
+            // if(file)    reader.readAsDataURL(file)
+            
+        }
+    </script>
+    </html>

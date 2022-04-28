@@ -36,37 +36,41 @@
     </nav>
     <br>
     <br>
-   <div class="container">
-    <button type="button" style="font-size: xx-large;" class="btn btn-info btn-lg" onclick="uploadProduct()">Get GLTF from video</button><br><br><br><br>
-    <label style="font-size:xx-large;">Enter name of the product</label> <input style="font-size:xx-large;" type="text" id="name" name="name">
-    <br><br>   
-    <label style="font-size:xx-large;">Select the gltf file of the product</label> <input style="font-size:xx-large;" type="file" id="video" name="video">
-    <br><br>
-    <label style="font-size:xx-large;">Select the product preview image</label> <input style="font-size:xx-large;" type="file" id="image" name="image">
-    <br><br>
-    <button type="button" style="font-size: xx-large;" class="btn btn-info btn-lg" onclick="uploadProduct()">Upload Product</button>
-   </div>
+    <div class="container">
+        <button type="button" style="font-size: xx-large;" class="btn btn-info btn-lg" onclick="getGLTF()">Get GLTF from video</button><br><br><br><br>
+        <label style="font-size:xx-large;">Enter name of the product</label> <input style="font-size:xx-large;" type="text" id="name" name="name">
+        <br><br>   
+        <label style="font-size:xx-large;">Select the gltf file of the product</label> <input style="font-size:xx-large;" type="file" id="video" name="video">
+        <br><br>
+        <label style="font-size:xx-large;">Select the product preview image</label> <input style="font-size:xx-large;" type="file" id="image" name="image">
+        <br><br>
+        <button type="button" style="font-size: xx-large;" class="btn btn-info btn-lg" onclick="uploadProduct()">Upload Product</button>
+    </div>
 </body>
 
 <script src="domain.js"></script>
 <script>
-       async function uploadProduct(){
-            var data = new FormData()
-            gltf = document.getElementById('video').files[0]
-            preview_image = document.getElementById('image').files[0]
-            title = document.getElementById('name').value
-            data.append('gltf_file', gltf)
-            data.append('name', title)
-            data.append('image',preview_image)
-            
-            headers = {}
-            var response = await fetch(domain + "/newProduct", {
-                method: "POST",
-                body : data,
-                mode: 'cors',
-                headers: headers,
-                'Content-Type': 'multipart/form-data'
-            }).then(response=>alert("Product added"))
-        }
+    function getGLTF(){
+        window.location.href = "getGLTF.html"   
+    }
+    
+    async function uploadProduct(){
+        var data = new FormData()
+        gltf = document.getElementById('video').files[0]
+        preview_image = document.getElementById('image').files[0]
+        title = document.getElementById('name').value
+        data.append('gltf_file', gltf)
+        data.append('name', title)
+        data.append('image',preview_image)
+        
+        headers = {}
+        var response = await fetch(domain + "/newProduct", {
+            method: "POST",
+            body : data,
+            mode: 'cors',
+            headers: headers,
+            'Content-Type': 'multipart/form-data'
+        }).then(response=>alert("Product added"))
+    }
 </script>
 </html>
