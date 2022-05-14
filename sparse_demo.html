@@ -610,7 +610,7 @@
     <script src="./lib/clustering.js"></script>
 
     <script>
-        var domain = "http://9776-35-233-225-208.ngrok.io"
+        var domain = "http://6886-35-201-157-140.ngrok.io"
         
         async function onSubmit(cam1, cam2){
             try{
@@ -663,39 +663,39 @@
                 }
                 console.timeEnd("Point Matching Time")
                 
-                console.time("Synthetic Point Addition Time")
+                // console.time("Synthetic Point Addition Time")
 
                 // window.ray_to_ray_matches = ray_to_ray_matches
                 // window.matches_response = data
-                var top_3 = JSON.parse(JSON.stringify(data.match_conf)).sort((a, b)=>b - a).splice(0, 3)
+                // var top_3 = JSON.parse(JSON.stringify(data.match_conf)).sort((a, b)=>b - a).splice(0, 3)
 
-                top_3 = top_3.map((conf)=> data.match_conf.indexOf(conf) )
-                top_3 = top_3.map((i)=>{ return {
-                    img1: {
-                        x: Math.round(data.img1_keypoints[i][0]),
-                        y: Math.round(data.img1_keypoints[i][1]),
-                    },
-                    img2: {
-                        x: Math.round(data.img2_keypoints[data.matches[i]][0]),
-                        y: Math.round(data.img2_keypoints[data.matches[i]][1])
-                    }
-                }})
+                // top_3 = top_3.map((conf)=> data.match_conf.indexOf(conf) )
+                // top_3 = top_3.map((i)=>{ return {
+                //     img1: {
+                //         x: Math.round(data.img1_keypoints[i][0]),
+                //         y: Math.round(data.img1_keypoints[i][1]),
+                //     },
+                //     img2: {
+                //         x: Math.round(data.img2_keypoints[data.matches[i]][0]),
+                //         y: Math.round(data.img2_keypoints[data.matches[i]][1])
+                //     }
+                // }})
 
-                var img1_triangle = {p1: top_3[0].img1, p2: top_3[1].img1, p3: top_3[2].img1}
-                var img2_triangle = {p1: top_3[0].img2, p2: top_3[1].img2, p3: top_3[2].img2}
+                // var img1_triangle = {p1: top_3[0].img1, p2: top_3[1].img1, p3: top_3[2].img1}
+                // var img2_triangle = {p1: top_3[0].img2, p2: top_3[1].img2, p3: top_3[2].img2}
 
-                var pts = addNPoints(cam1.mask, cam1.maskMetaData, 10)
+                // var pts = addNPoints(cam1.mask, cam1.maskMetaData, 10)
 
-                var matches_augmented = pts.map((pt)=>{ return {
-                                                            img1: pt,
-                                                            img2: getCartesianOfBary(img2_triangle, getBaryOfCoord(img1_triangle, pt))
-                                                        }
-                                        })
+                // var matches_augmented = pts.map((pt)=>{ return {
+                //                                             img1: pt,
+                //                                             img2: getCartesianOfBary(img2_triangle, getBaryOfCoord(img1_triangle, pt))
+                //                                         }
+                //                         })
 
-                // console.log(matches_augmented)
-                ray_to_ray_matches.push(...matches_augmented)
+                // // console.log(matches_augmented)
+                // ray_to_ray_matches.push(...matches_augmented)
 
-                console.timeEnd("Synthetic Point Addition Time")
+                // console.timeEnd("Synthetic Point Addition Time")
                 
                 return ray_to_ray_matches
             }catch(e){
