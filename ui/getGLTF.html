@@ -56,7 +56,7 @@
             </center>
         </div>   
         <div id="output" style="display:none">
-            <a style="font-size: x-large;" href="http://5f69-34-132-86-170.ngrok.io/static/penguin.glb">Click here to download gltf file</a>
+            <a style="font-size: x-large;" href="http://ff3d-35-245-153-24.ngrok.io/static/penguin.glb">Click here to download gltf file</a>
             <iframe id="op" style="height: 100%; width: 100%" src="" frameBorder="0"></iframe>
         </div>
     </div>
@@ -70,8 +70,8 @@
         setTimeout(function(){
             document.getElementById("result").style.display = "none"   
             document.getElementById("output").style.display = "block"   
-            document.getElementById("op").src = `http://${web_ip}:8085/2Dto3D/ui/viewer.html?model=${static_domain+"/penguin.glb"}&z=1`
-        },30000)
+            document.getElementById("op").src = `http://${web_ip}:8080/2Dto3D/ui/viewer.html?model=${static_domain+"/penguin.glb"}&z=1`
+        },60 * 1000)
     }
     
     document.querySelector("#video").onchange = function(e){
