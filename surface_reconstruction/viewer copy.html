@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>three.js / cannon.js example</title>
+    <meta charset="utf-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="threejs.js"></script>
+    <script src="cannon.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="CannonDebugRenderer.js"></script>
+    <script>
+        var world, particles, timeStep = 1 / 60,
+            camera, scene, renderer, clothGeometry, controls;
+
+        var cannonDebugRenderer
+
+        var clothMass = 1; // 1 kg in total
+        var clothSize = 1; // 1 meter
+        var Nx = 12;
+        var Ny = 12;
+
+        initThree();
+        initCannon();
+        animate();
+
+        function initCannon() {
+            world = new CANNON.World();
+
+            cannonDebugRenderer = new THREE.CannonDebugRenderer( scene, world );
+
+            world.gravity.set(0, -9, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+
+            var shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+            var body = new CANNON.Body({
+                mass: 1
+            });
+            body.addShape(shape);
+            body.position.y = 2
+            world.addBody(body);
+
+            var groundShape = new CANNON.Box(new CANNON.Vec3(35, 1, 35));
+            var groundBody = new CANNON.Body({
+                mass: 0
+            });
+            groundBody.addShape(groundShape)
+            groundBody.position.y = -1
+            world.addBody(groundBody);
+
+            initCloth()
+        }
+
+        function initCloth(){
+            var mass = clothMass / Nx*Ny;
+
+            var restDistance = clothSize/Nx;
+
+            var clothFunction = plane(restDistance * Nx, restDistance * Ny);
+
+            function plane(width, height) {
+                return function(u, v, w) {
+
+                    var ret = w ?? new THREE.Vector3(0, 0, 0)
+
+                    var x = (u-0.5) * width;
+                    var y = (v+0.5) * height;
+                    var z = 0;
+
+                    ret.x = x
+                    ret.y = y
+                    ret.z = z
+
+                    return ret
+                };
+            }
+
+            particles = []
+
+            for ( var i = 0, il = Nx+1; i !== il; i++ ) {
+                particles.push([]);
+                for ( var j = 0, jl = Ny+1; j !== jl; j++ ) {
+                    var idx = j*(Nx+1) + i;
+                    var p = clothFunction(i/(Nx+1), j/(Ny+1));
+                    var particle = new CANNON.Body({
+                        mass: j==Ny ? 0 : mass
+                    });
+                    particle.addShape(new CANNON.Particle());
+                    particle.linearDamping = 0.5;
+                    particle.position.set(
+                        p.x,
+                        p.y-Ny * 0.9 * restDistance,
+                        p.z
+                    );
+                    particles[i].push(particle);
+                    world.addBody(particle);
+                    particle.velocity.set(0,0,-0.1*(Ny-j));
+                }
+            }
+            
+            function connect(i1,j1,i2,j2){
+                world.addConstraint( new CANNON.DistanceConstraint(particles[i1][j1],particles[i2][j2],restDistance) );
+            }
+
+            for(var i=0; i<Nx+1; i++){
+                for(var j=0; j<Ny+1; j++){
+                    if(i<Nx) connect(i,j,i+1,j);
+                    if(j<Ny) connect(i,j,i,j+1);
+                }
+            }
+
+            var clothMaterial = new THREE.MeshBasicMaterial( {
+                color: 0xff0000,
+                side: THREE.DoubleSide
+            } );
+
+            // cloth geometry
+            clothGeometry = new THREE.ParametricGeometry( clothFunction, Nx, Ny );
+            clothGeometry.dynamic = true;
+            clothGeometry.computeFaceNormals();
+
+            // cloth mesh
+            cloth = new THREE.Mesh(clothGeometry, clothMaterial);
+            cloth.position.set(0, 0, 0);
+            cloth.castShadow = true;
+            scene.add( cloth );
+        }
+
+        function initThree() {
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100);
+            camera.position.z = 5;
+            camera.position.y = 5;
+            camera.position.x = 5;
+            scene.add(camera);
+
+            const gridHelper = new THREE.GridHelper( 50, 50 );
+            scene.add( gridHelper );
+            const axesHelper = new THREE.AxesHelper( 5 );
+            scene.add( axesHelper );
+
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            controls = new THREE.OrbitControls( camera, renderer.domElement )
+
+            document.body.appendChild(renderer.domElement);
+        }
+
+        function animate() {
+
+            requestAnimationFrame(animate);
+            updatePhysics();
+            render();
+
+        }
+
+        function updatePhysics() {
+
+            // Step the physics world
+            world.step(timeStep);
+
+            // Copy coordinates from Cannon.js to Three.js
+            // mesh.position.copy(body.position);
+            // mesh.quaternion.copy(body.quaternion);
+            for ( var i = 0, il = Nx+1; i !== il; i++ ) {
+                for ( var j = 0, jl = Ny+1; j !== jl; j++ ) {
+                    var idx = j*(Nx+1) + i;
+                    clothGeometry.vertices[idx].copy(particles[i][j].position);
+                }
+            }
+
+            clothGeometry.computeFaceNormals();
+            clothGeometry.computeVertexNormals();
+
+            clothGeometry.normalsNeedUpdate = true;
+            clothGeometry.verticesNeedUpdate = true;
+        }
+
+        function render() {
+            controls.update();
+            cannonDebugRenderer.update()
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>

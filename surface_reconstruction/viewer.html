@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>three.js / cannon.js example</title>
+    <meta charset="utf-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="threejs.js"></script>
+    <script src="cannon.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="CannonDebugRenderer.js"></script>
+    <script>
+        var world, timeStep = 1 / 120,
+            camera, scene, renderer, controls;
+
+        var cannonDebugRenderer
+
+        var cloth
+
+        var clothMass = 1; // 1 kg in total
+        var clothSize = 7; // 1 meter
+        var Nx = 24;
+        var Ny = 24;
+
+        initThree();
+        initCannon();
+
+        var rotation = new CANNON.Vec3(Math.PI/2, 0, 0)
+        var position = new CANNON.Vec3(0, 20, 0)
+        // cloth = new Cloth(Nx, Ny, clothMass, clothSize, position, rotation)
+
+        animate();
+
+        function initCannon() {
+            world = new CANNON.World();
+
+            cannonDebugRenderer = new THREE.CannonDebugRenderer( scene, world );
+
+            world.gravity.set(0, -9, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+
+            var shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+            var body = new CANNON.Body({
+                mass: 1
+            });
+            body.addShape(shape);
+            body.position.y = 10
+            world.addBody(body);
+
+            var groundShape = new CANNON.Box(new CANNON.Vec3(35, 1, 35));
+            var groundBody = new CANNON.Body({
+                mass: 0
+            });
+            groundBody.addShape(groundShape)
+            groundBody.position.y = -1
+            world.addBody(groundBody);
+        }
+
+        function initThree() {
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100);
+            camera.position.z = 5;
+            camera.position.y = 5;
+            camera.position.x = 5;
+            scene.add(camera);
+
+            const gridHelper = new THREE.GridHelper( 50, 50 );
+            scene.add( gridHelper );
+            const axesHelper = new THREE.AxesHelper( 5 );
+            scene.add( axesHelper );
+
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            controls = new THREE.OrbitControls( camera, renderer.domElement )
+
+            document.body.appendChild(renderer.domElement);
+        }
+
+        function animate() {
+
+            requestAnimationFrame(animate);
+            updatePhysics();
+            render();
+
+        }
+
+        function updatePhysics() {
+
+            // Step the physics world
+            world.step(timeStep);
+
+            // Copy coordinates from Cannon.js to Three.js
+            // mesh.position.copy(body.position);
+            // mesh.quaternion.copy(body.quaternion);
+            // cloth.update()
+        }
+
+        function render() {
+            controls.update();
+            cannonDebugRenderer.update()
+            renderer.render(scene, camera);
+        }
+
+        function Cloth(Nx, Ny, clothMass, clothSize, translation, rotation){
+            var mass = clothMass / Nx*Ny;
+
+            var restDistance = clothSize/Nx;
+
+            var clothFunction = plane(clothSize, clothSize);
+
+            function plane(width, height) {
+                return function(u, v, w) {
+
+                    var ret = w ?? new THREE.Vector3(0, 0, 0)
+
+                    var x = (u) * width;
+                    var y = (v) * height;
+                    var z = 0;
+
+                    ret.x = x
+                    ret.y = y
+                    ret.z = z
+
+                    return ret
+                };
+            }
+
+            var particles = []
+
+            var pitch = rotation.y
+            var roll  = rotation.x
+            var yaw   = rotation.z
+
+            var cosa = Math.cos(yaw);
+            var sina = Math.sin(yaw);
+
+            var cosb = Math.cos(pitch);
+            var sinb = Math.sin(pitch);
+
+            var cosc = Math.cos(roll);
+            var sinc = Math.sin(roll);
+
+            var Axx = cosa*cosb;
+            var Axy = cosa*sinb*sinc - sina*cosc;
+            var Axz = cosa*sinb*cosc + sina*sinc;
+
+            var Ayx = sina*cosb;
+            var Ayy = sina*sinb*sinc + cosa*cosc;
+            var Ayz = sina*sinb*cosc - cosa*sinc;
+
+            var Azx = -sinb;
+            var Azy = cosb*sinc;
+            var Azz = cosb*cosc;
+
+            for ( var i = 0, il = Nx+1; i !== il; i++ ) {
+                particles.push([]);
+                for ( var j = 0, jl = Ny+1; j !== jl; j++ ) {
+                    var idx = j*(Nx+1) + i;
+                    var p = clothFunction(i/(Nx+1), j/(Ny+1));
+                    var particle = new CANNON.Body({
+                        mass: mass
+                    });
+                    particle.addShape(new CANNON.Particle());
+                    particle.linearDamping = 0.5;
+                    particle.position.set(
+                        p.x - 0.9 * (clothSize / 2),
+                        p.y - 0.9 * (clothSize / 2),
+                        p.z
+                    );
+
+                    var px = particle.position.x;
+                    var py = particle.position.y;
+                    var pz = particle.position.z;
+
+                    particle.position.x = Axx*px + Axy*py + Axz*pz;
+                    particle.position.y = Ayx*px + Ayy*py + Ayz*pz;
+                    particle.position.z = Azx*px + Azy*py + Azz*pz;
+
+                    particle.position.vadd(translation, particle.position)
+
+                    particles[i].push(particle);
+                    world.addBody(particle);
+                    particle.velocity.set(0,0,0);
+                }
+            }
+            
+            function connect(i1,j1,i2,j2){
+                world.addConstraint( new CANNON.DistanceConstraint(particles[i1][j1],particles[i2][j2],restDistance) );
+            }
+
+            for(var i=0; i<Nx+1; i++){
+                for(var j=0; j<Ny+1; j++){
+                    if(i<Nx) connect(i,j,i+1,j);
+                    if(j<Ny) connect(i,j,i,j+1);
+                }
+            }
+
+            var clothMaterial = new THREE.MeshBasicMaterial( {
+                color: 0xff0000,
+                side: THREE.DoubleSide
+            } );
+
+            // cloth geometry
+            var clothGeometry = new THREE.ParametricGeometry( clothFunction, Nx, Ny );
+            clothGeometry.dynamic = true;
+            clothGeometry.computeFaceNormals();
+
+            // cloth mesh
+            var cloth = new THREE.Mesh(clothGeometry, clothMaterial);
+            cloth.position.set(0, 0, 0);
+            cloth.castShadow = true;
+            scene.add( cloth );
+
+            return {body: particles, mesh: cloth, update: function(){
+                for ( var i = 0, il = Nx+1; i !== il; i++ ) {
+                    for ( var j = 0, jl = Ny+1; j !== jl; j++ ) {
+                        var idx = j*(Nx+1) + i;
+                        clothGeometry.vertices[idx].copy(particles[i][j].position);
+                    }
+                }
+
+                clothGeometry.computeFaceNormals();
+                clothGeometry.computeVertexNormals();
+
+                clothGeometry.normalsNeedUpdate = true;
+                clothGeometry.verticesNeedUpdate = true;
+            }}
+        }
+    </script>
+    <script>
+        var SPHERE_GEOMETRY = new THREE.SphereGeometry(0.05,16,16);
+        var SPHERE_MATERIAL = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+        
+        function createSphere(v, color){
+            
+            var material = SPHERE_MATERIAL
+            
+            if(color){
+                material = new THREE.MeshBasicMaterial( {color: color} );
+            }
+            
+            const plane_geometry = SPHERE_GEOMETRY
+            const plane = new THREE.Mesh( plane_geometry, material );
+            plane.position.set(v.x, v.y, v.z)
+            scene.add(plane);
+
+            return plane
+        }
+    </script>
+
+    <script id="data" src="pc.js"></script>
+    <script>
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+        }
+
+        function loadXYZ() {
+            var dx = 0
+            var dy = 3
+            var dz = 0
+
+            var s = 2.5
+
+            var spheres = []
+
+            for (var cluster of clusteredPointCloud) {
+                var color = getRandomInt(0, 16777215 + 1)
+
+                for (var point of cluster) {
+                    spheres.push(createSphere({
+                        x: point[0] * s + dx,
+                        y: point[1] * s + dy,
+                        z: point[2] * s + dz
+                    }, color))
+                }
+            }
+
+            for(let sphere of spheres){
+                let body = new CANNON.Body({mass: 0})
+                body.addShape(new CANNON.Particle())
+
+                body.position.x = sphere.position.x
+                body.position.y = sphere.position.y
+                body.position.z = sphere.position.z
+
+                let collisionHandler = function(){
+                    scene.remove(sphere)
+                    createSphere({x: sphere.position.x, y: sphere.position.y,z: sphere.position.z})
+
+                    body.removeEventListener("collide", collisionHandler)
+                }
+
+                body.addEventListener("collide", collisionHandler)
+
+                world.addBody(body)
+            }
+        }
+
+        loadXYZ()
+    </script>
+</body>
+
+</html>
